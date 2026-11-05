@@ -20,6 +20,8 @@
       <%= form.hidden_field "user[redirect_to]", value: redirect_to %>
       <%= form.submit t(".enable_button"), class: "cursor-pointer hover:bg-inverse-hover w-full py-2 px-4 bg-inverse text-inverse rounded-lg text-sm font-medium" %>
     <% end %>
+  <% else %>
+    <%= link_to t(".open_settings"), settings_hosting_path, class: "block text-center hover:bg-inverse-hover w-full py-2 px-4 bg-inverse text-inverse rounded-lg text-sm font-medium" %>
   <% end %>
 
   <p class="text-xs text-secondary text-center mt-2"><%= t(".disable_note") %></p>

@@ -39,7 +39,8 @@ en:
     ai_consent:
       title: "Enable AI Chats"
       available_description: "AI chat can answer financial questions and provide insights based on your data. To use this feature you'll need to explicitly enable it."
-      unavailable_description_html: "To use the AI assistant, you need to set the <code class=\"bg-surface-inset px-1 py-0.5 rounded font-mono text-xs\">OPENAI_ACCESS_TOKEN</code> environment variable or configure it in the Self-Hosting settings of your instance."
+      unavailable_description_html: "To use the AI assistant, add an API key for OpenAI, Anthropic or any OpenAI-compatible provider in Settings › Self-Hosting."
+      open_settings: Add an AI key
       enable_button: "Enable AI Chats"
       disable_note: "Disable anytime. All data sent to our LLM providers is anonymized."
   assistant_messages:
