@@ -100,9 +100,6 @@ tr:
         trend: Eğilim
         unknown: Bilinmiyor
         year_built: İnşa Yılı
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
     form_tabs:
       address: Adres
       overview: Genel Bakış

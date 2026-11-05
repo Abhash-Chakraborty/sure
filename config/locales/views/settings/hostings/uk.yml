@@ -28,7 +28,6 @@ uk:
         confirm_clear_cache:
           title: Очистити кеш даних?
           body: Ви впевнені, що хочете очистити кеш даних? Це видалить усі курси обміну, ціни на цінні папери, баланси рахунків та інші дані. Цю дію неможливо скасувати.
-        property_valuation_providers: Постачальники оцінки нерухомості
       provider_selection:
         exchange_rate_title: Постачальник курсів обміну
         exchange_rate_description: Виберіть одного постачальника для отримання курсів обміну валют.
@@ -36,28 +35,14 @@ uk:
         securities_title: Постачальники цінних паперів
         securities_description: Увімкніть одного або кількох постачальників для отримання цін на акції, ETF та взаємні фонди. Під час пошуку запитуються всі ввімкнені постачальники, а результати об'єднуються.
         env_configured_message: Вибір постачальника вимкнено, оскільки встановлено змінні середовища. Щоб увімкнути вибір тут, видаліть ці змінні середовища з вашої конфігурації.
-        twelve_data_hint: потрібен ключ API, 800 кредитів/день
         yahoo_finance_hint: безкоштовно, ключ API не потрібен
-        requires_api_key: потрібен ключ API
-        requires_api_key_eodhd: потрібен ключ API, ліміт 20 запитів/день
-        requires_api_key_alpha_vantage: потрібен ключ API, ліміт 25 запитів/день
         mfapi_hint: безкоштовно, ключ API не потрібен -- лише індійські взаємні фонди
         binance_public_hint: безкоштовно, ключ API не потрібен -- лише криптовалюта (BTC, ETH тощо)
-        moex_public_hint: безкоштовно, ключ API не потрібен -- російські акції, фонди та облігації (MOEX), вкл. RUB FX
-        tinkoff_invest_hint: потрібен токен лише для читання -- ціни на російські акції/фонди/облігації + логотипи брендів
         providers:
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-          tiingo: Tiingo
-          eodhd: EODHD
-          alpha_vantage: Alpha Vantage
           mfapi: MFAPI.in
           binance_public: Binance
-          moex_public: MOEX
-          tinkoff_invest: T-Invest (T-Bank)
           frankfurter: Frankfurter
-          mansa: Mansa
-        requires_api_key_mansa: потрібен ключ API, безкоштовний тариф — 100 запитів на день; африканські біржі (NGX, JSE, NSE, GSE, BRVM тощо)
       assistant_settings:
         title: ШІ-помічник
         description: Виберіть, як відповідатиме чат-помічник. Вбудований використовує безпосередньо налаштованого постачальника LLM. Зовнішній делегує віддаленому ШІ-агенту, який може звертатися до фінансових інструментів Sure через MCP.
@@ -163,65 +148,6 @@ uk:
         unavailable_title: Не вдалося перевірити Yahoo Finance.
         unavailable_message: Не вдалося зв'язатися з Yahoo Finance або він повернув неочікувану відповідь. Перевірте своє інтернет-з'єднання та спробуйте ще раз пізніше.
         status_unknown: Статус Yahoo Finance перевіряється.
-      tiingo_settings:
-        title: Tiingo
-        description: Введіть токен API, наданий Tiingo. Безкоштовний рівень підтримує 50 унікальних символів на годину з історичними даними за 30+ років.
-        env_configured_message: Успішно налаштовано за допомогою змінної середовища TIINGO_API_KEY.
-        label: Токен API
-        placeholder: Введіть свій токен API Tiingo тут
-        show_details: "(показати деталі)"
-        step_1_html: 'Відвідайте <a href="https://www.tiingo.com" target="_blank" rel="noopener noreferrer" class="underline">tiingo.com</a> і створіть безкоштовний обліковий запис.'
-        step_2_html: 'Перейдіть на сторінку <a href="https://www.tiingo.com/account/api/token" target="_blank" rel="noopener noreferrer" class="underline">API Token</a>.'
-        step_3: Скопіюйте свій токен API та вставте його нижче.
-      tinkoff_invest_settings:
-        title: T-Invest (T-Bank)
-        description: Введіть токен API T-Invest лише для читання. Використовується для отримання логотипів брендів для цінних паперів (вкл. фонди та облігації, навіть коли MOEX їх оцінює) та, коли ввімкнено вище, цін на російські інструменти.
-        env_configured_message: Успішно налаштовано за допомогою змінної середовища TINKOFF_INVEST_API_KEY.
-        label: Токен API
-        placeholder: Введіть свій токен API T-Invest тут
-        show_details: "(показати деталі)"
-        step_1: Відкрийте T-Bank інвестиції, потім Налаштування, потім Токени API (потрібен відкритий брокерський рахунок T-Bank).
-        step_2: Створіть токен з доступом лише для читання.
-        step_3: Скопіюйте токен і вставте його нижче.
-        moex_only_notice: Не використовується для цін вище — T-Invest отримує логотипи брендів для всіх ваших цінних паперів, щойно налаштовано токен, незалежно від прапорця вище.
-      eodhd_settings:
-        title: EODHD
-        description: Введіть токен API, наданий EODHD. Підтримує європейські ETF на LSE, XETRA та інших міжнародних біржах.
-        env_configured_message: Успішно налаштовано за допомогою змінної середовища EODHD_API_KEY.
-        label: Токен API
-        placeholder: Введіть свій токен API EODHD тут
-        show_details: "(показати деталі)"
-        step_1_html: 'Відвідайте <a href="https://eodhd.com/register" target="_blank" rel="noopener noreferrer" class="underline">eodhd.com</a> і створіть безкоштовний обліковий запис.'
-        step_2_html: 'Перейдіть на свою <a href="https://eodhd.com/cp/dashboard" target="_blank" rel="noopener noreferrer" class="underline">Панель керування</a>, щоб знайти свій токен API.'
-        step_3: Скопіюйте свій токен API та вставте його нижче.
-        rate_limit_warning: "Безкоштовний рівень EODHD обмежений 20 запитами API на день. Найкраще використовувати як додаткового постачальника для європейських ETF, недоступних від інших постачальників."
-      alpha_vantage_settings:
-        title: Alpha Vantage
-        description: Введіть ключ API від Alpha Vantage. Підтримує європейські ETF на Лондонській фондовій біржі, XETRA та інших біржах.
-        env_configured_message: Успішно налаштовано за допомогою змінної середовища ALPHA_VANTAGE_API_KEY.
-        label: Ключ API
-        placeholder: Введіть свій ключ API Alpha Vantage тут
-        show_details: "(показати деталі)"
-        step_1_html: 'Відвідайте <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener noreferrer" class="underline">alphavantage.co</a> і отримайте свій безкоштовний ключ API.'
-        step_2: Скопіюйте ключ API та вставте його нижче.
-        rate_limit_warning: "Безкоштовний рівень Alpha Vantage обмежений 25 запитами API на день. Найкраще використовувати як додаткового постачальника для європейських ETF, недоступних від інших постачальників."
-        no_health_check_note: "Перевірка працездатності з'єднання недоступна для цього постачальника через суворе обмеження швидкості."
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} щоденних запитів API використано (%{percentage})"
-        description: Введіть ключ API, наданий Twelve Data
-        env_configured_message: Успішно налаштовано за допомогою змінної середовища TWELVE_DATA_API_KEY.
-        label: Ключ API
-        placeholder: Введіть свій ключ API тут
-        show_details: "(показати деталі)"
-        step_1_html: 'Відвідайте <a href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer" class="underline">twelvedata.com</a> і створіть безкоштовний обліковий запис розробника Twelve Data.'
-        step_2_html: 'Перейдіть на сторінку <a href="https://twelvedata.com/account/api-keys" target="_blank" rel="noopener noreferrer" class="underline">API Keys</a>.'
-        step_3: Розкрийте свій секретний ключ і вставте його нижче.
-        plan: "план %{plan}"
-        plan_upgrade_warning_title: Деякі тикери вимагають платного плану
-        plan_upgrade_warning_description: Наступні тикери у вашому портфелі не можуть синхронізувати ціни з вашим поточним планом Twelve Data.
-        requires_plan: вимагає плану %{plan}
-        view_pricing: Переглянути ціни Twelve Data
-        title: Twelve Data
       update:
         failure: Недійсне значення налаштування
         success: Налаштування оновлено
@@ -247,30 +173,3 @@ uk:
         auto_sync_description: Коли ввімкнено, усі рахунки будуть автоматично синхронізуватися щодня у вказаний час.
         auto_sync_time_label: Час синхронізації (ГГ:ХХ)
         auto_sync_time_description: Вкажіть час доби, коли має відбуватися автоматична синхронізація.
-        include_pending_label: Включати очікувані транзакції
-        include_pending_description: Коли ввімкнено, очікувані (незавершені) транзакції будуть імпортуватися та автоматично звірятися, коли їх буде проведено. Вимкніть, якщо ваш банк надає ненадійні дані про очікувані транзакції.
-        env_configured_message: Це налаштування вимкнено, оскільки встановлено змінну середовища постачальника (SIMPLEFIN_INCLUDE_PENDING або PLAID_INCLUDE_PENDING). Видаліть її, щоб увімкнути це налаштування.
-      rentcast_settings:
-        title: RentCast
-        description: Введіть ключ API RentCast, щоб отримувати характеристики та оцінку вартості нерухомості у США під час її додавання. Безкоштовний тариф обмежено 50 запитами API на місяць, спільними для пошуку об'єктів і щоденного оновлення оцінок. На платному тарифі підвищте ліміт за допомогою змінної середовища RENTCAST_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Успішно налаштовано через змінну середовища RENTCAST_API_KEY.
-        label: Ключ API
-        placeholder: Введіть тут свій ключ API RentCast
-        usage: Використано %{used} з %{limit} запитів на місяць
-      realie_settings:
-        title: Realie
-        description: Введіть ключ API Realie, щоб отримувати характеристики та оцінку вартості нерухомості у США під час її додавання. Безкоштовний тариф обмежено 25 запитами API на місяць, спільними для пошуку об'єктів і щоденного оновлення оцінок. На платному тарифі підвищте ліміт за допомогою змінної середовища REALIE_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Успішно налаштовано через змінну середовища REALIE_API_KEY.
-        label: Ключ API
-        placeholder: Введіть тут свій ключ API Realie
-        usage: Використано %{used} з %{limit} запитів на місяць
-      mansa_settings:
-        title: Mansa
-        description: Введіть ключ API з Mansa API. Підтримує 20 африканських бірж, зокрема NGX (Нігерійську біржу), JSE, NSE (Кенія), GSE (Гана) і BRVM, частину з яких не охоплює жоден інший постачальник тут.
-        env_configured_message: Успішно налаштовано через змінну середовища MANSA_API_KEY.
-        label: Ключ API
-        placeholder: Введіть тут свій ключ API Mansa
-        show_details: (показати деталі)
-        step_1_html: Перейдіть на <a href="https://mansaapi.com" target="_blank" rel="noopener noreferrer" class="underline">mansaapi.com</a> і отримайте безкоштовний ключ API — картка не потрібна.
-        step_2: Скопіюйте свій ключ API та вставте його нижче.
-        rate_limit_warning: Безкоштовний тариф Mansa обмежено 100 викликами API на день, і він надає лише поточні котирування — історичні ціни потребують платного тарифу.

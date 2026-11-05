@@ -28,7 +28,6 @@ en:
         general: General Settings
         ai_assistant: AI Assistant
         financial_data_providers: Financial Data Providers
-        property_valuation_providers: Property Valuation Providers
         sync_settings: Sync Settings
         invites: Invite Codes
         title: Self-Hosting
@@ -46,28 +45,14 @@ en:
         securities_title: Securities Providers
         securities_description: Enable one or more providers for fetching stock, ETF, and mutual fund prices. When searching, all enabled providers are queried and results are merged.
         env_configured_message: Provider selection is disabled because environment variables are set. To enable selection here, remove these environment variables from your configuration.
-        twelve_data_hint: requires API key, 800 credits/day
         yahoo_finance_hint: free, no API key needed
-        requires_api_key: requires API key
-        requires_api_key_eodhd: requires API key, 20 calls/day limit
-        requires_api_key_alpha_vantage: requires API key, 25 calls/day limit
         mfapi_hint: free, no API key -- Indian mutual funds only
         binance_public_hint: free, no API key -- crypto only (BTC, ETH, etc.)
-        moex_public_hint: free, no API key -- Russian stocks, funds & bonds (MOEX), incl. RUB FX
-        tinkoff_invest_hint: requires read-only token -- Russian stocks/funds/bonds prices + brand logos
-        requires_api_key_mansa: requires API key, 100 calls/day free tier -- African exchanges (NGX, JSE, NSE, GSE, BRVM and more)
         providers:
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-          tiingo: Tiingo
-          eodhd: EODHD
-          alpha_vantage: Alpha Vantage
           mfapi: MFAPI.in
           binance_public: Binance
-          moex_public: MOEX
-          tinkoff_invest: T-Invest (T-Bank)
           frankfurter: Frankfurter
-          mansa: Mansa
       assistant_settings:
         title: AI Assistant
         description: Choose how the chat assistant responds. Builtin uses your configured LLM provider directly. External delegates to a remote AI agent that can call back to Sure's financial tools via MCP. None in app removes the in-app chat and keeps MCP available for your own agents.
@@ -227,96 +212,6 @@ en:
         unavailable_title: Could not verify Yahoo Finance.
         unavailable_message: Yahoo Finance could not be reached or returned an unexpected response. Check your internet connection and try again later.
         status_unknown: Yahoo Finance status is being checked.
-      rentcast_settings:
-        title: RentCast
-        description: Enter your RentCast API key to look up US property details and value estimates when adding a property. The free tier is limited to 50 API requests per month, shared between property lookups and daily valuation refreshes. On a paid plan, raise the cap with the RENTCAST_MAX_REQUESTS_PER_MONTH environment variable.
-        env_configured_message: Successfully configured through the RENTCAST_API_KEY environment variable.
-        label: API Key
-        placeholder: Enter your RentCast API key here
-        usage: "%{used} of %{limit} monthly requests used"
-      realie_settings:
-        title: Realie
-        description: Enter your Realie API key to look up US property details and value estimates when adding a property. The free tier is limited to 25 API requests per month, shared between property lookups and daily valuation refreshes. On a paid plan, raise the cap with the REALIE_MAX_REQUESTS_PER_MONTH environment variable.
-        env_configured_message: Successfully configured through the REALIE_API_KEY environment variable.
-        label: API Key
-        placeholder: Enter your Realie API key here
-        usage: "%{used} of %{limit} monthly requests used"
-      chimnie_settings:
-        title: Chimnie
-        description: Enter your Chimnie API key to value UK residential properties by their UPRN. Create a free key at dashboard.chimnie.com (sign-up requires a business or custom-domain email address; Gmail, Outlook and similar addresses are not accepted). UPRN valuations are free and refreshed monthly; Sure caps them at 1,000 requests per month, which you can change with the CHIMNIE_MAX_REQUESTS_PER_MONTH environment variable.
-        env_configured_message: Successfully configured through the CHIMNIE_API_KEY environment variable.
-        label: API Key
-        placeholder: Enter your Chimnie API key here
-        usage: "%{used} of %{limit} monthly requests used"
-      tiingo_settings:
-        title: Tiingo
-        description: Enter the API token provided by Tiingo. Free tier supports 50 unique symbols per hour with 30+ years of historical data.
-        env_configured_message: Successfully configured through the TIINGO_API_KEY environment variable.
-        label: API Token
-        placeholder: Enter your Tiingo API token here
-        show_details: "(show details)"
-        step_1_html: 'Visit <a href="https://www.tiingo.com" target="_blank" rel="noopener noreferrer" class="underline">tiingo.com</a> and create a free account.'
-        step_2_html: 'Go to the <a href="https://www.tiingo.com/account/api/token" target="_blank" rel="noopener noreferrer" class="underline">API Token</a> page.'
-        step_3: Copy your API token and paste it below.
-      tinkoff_invest_settings:
-        title: T-Invest (T-Bank)
-        description: Enter a read-only T-Invest API token. Used to fetch brand logos for securities (incl. funds and bonds, even when MOEX prices them) and, when enabled above, prices for Russian instruments.
-        moex_only_notice: Not enabled for prices above — T-Invest is used to fetch brand logos for all your securities whenever a token is configured, independent of the checkbox above.
-        env_configured_message: Successfully configured through the TINKOFF_INVEST_API_KEY environment variable.
-        label: API Token
-        placeholder: Enter your T-Invest API token here
-        show_details: "(show details)"
-        step_1: Open T-Bank investments, then Settings, then API tokens (requires an open T-Bank brokerage account).
-        step_2: Create a token with read-only access.
-        step_3: Copy the token and paste it below.
-      eodhd_settings:
-        title: EODHD
-        description: Enter the API token provided by EODHD. Supports EU ETFs on LSE, XETRA, and other international exchanges.
-        env_configured_message: Successfully configured through the EODHD_API_KEY environment variable.
-        label: API Token
-        placeholder: Enter your EODHD API token here
-        show_details: "(show details)"
-        step_1_html: 'Visit <a href="https://eodhd.com/register" target="_blank" rel="noopener noreferrer" class="underline">eodhd.com</a> and create a free account.'
-        step_2_html: 'Go to your <a href="https://eodhd.com/cp/dashboard" target="_blank" rel="noopener noreferrer" class="underline">Dashboard</a> to find your API token.'
-        step_3: Copy your API token and paste it below.
-        rate_limit_warning: "EODHD free tier is limited to 20 API calls per day. Best used as a supplementary provider for EU ETFs not available from other providers."
-      mansa_settings:
-        title: Mansa
-        description: Enter the API key from Mansa API. Supports 20 African stock exchanges, including NGX (Nigerian Exchange), JSE, NSE (Kenya), GSE (Ghana) and BRVM -- several of which no other provider here covers.
-        env_configured_message: Successfully configured through the MANSA_API_KEY environment variable.
-        label: API Key
-        placeholder: Enter your Mansa API key here
-        show_details: "(show details)"
-        step_1_html: 'Visit <a href="https://mansaapi.com" target="_blank" rel="noopener noreferrer" class="underline">mansaapi.com</a> and claim your free API key -- no card required.'
-        step_2: Copy your API key and paste it below.
-        rate_limit_warning: "Mansa's free tier is limited to 100 API calls per day, and only exposes current quotes -- historical prices require a paid plan."
-      alpha_vantage_settings:
-        title: Alpha Vantage
-        description: Enter the API key from Alpha Vantage. Supports EU ETFs on London Stock Exchange, XETRA, and other exchanges.
-        env_configured_message: Successfully configured through the ALPHA_VANTAGE_API_KEY environment variable.
-        label: API Key
-        placeholder: Enter your Alpha Vantage API key here
-        show_details: "(show details)"
-        step_1_html: 'Visit <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener noreferrer" class="underline">alphavantage.co</a> and claim your free API key.'
-        step_2: Copy the API key and paste it below.
-        rate_limit_warning: "Alpha Vantage free tier is limited to 25 API calls per day. Best used as a supplementary provider for EU ETFs not available from other providers."
-        no_health_check_note: "Connection health check is unavailable for this provider due to the strict rate limit."
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} API daily calls used (%{percentage})"
-        description: Enter the API key provided by Twelve Data
-        env_configured_message: Successfully configured through the TWELVE_DATA_API_KEY environment variable.
-        label: API Key
-        placeholder: Enter your API key here
-        show_details: "(show details)"
-        step_1_html: 'Visit <a href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer" class="underline">twelvedata.com</a> and create a free Twelve Data Developer account.'
-        step_2_html: 'Go to the <a href="https://twelvedata.com/account/api-keys" target="_blank" rel="noopener noreferrer" class="underline">API Keys</a> page.'
-        step_3: Reveal your Secret Key and paste it below.
-        plan: "%{plan} plan"
-        plan_upgrade_warning_title: Some tickers require a paid plan
-        plan_upgrade_warning_description: The following tickers in your portfolio cannot sync prices with your current Twelve Data plan.
-        requires_plan: requires %{plan} plan
-        view_pricing: View Twelve Data pricing
-        title: Twelve Data
       update:
         invalid_demo_family: Selected family must own the configured demo email.
         select_demo_family: Select a disposable demo family first.
@@ -350,6 +245,3 @@ en:
         market_data_sync_description: When enabled, security prices are imported automatically once a day (Monday-Friday) at the specified time.
         market_data_sync_time_label: Market data import time (HH:MM)
         market_data_sync_time_description: Specify the time of day when the daily security price import should run — e.g. shortly after your primary exchange closes.
-        include_pending_label: Include pending transactions
-        include_pending_description: When enabled, pending (uncleared) transactions will be imported and automatically reconciled when they post. Disable if your bank provides unreliable pending data.
-        env_configured_message: This setting is disabled because a provider environment variable (SIMPLEFIN_INCLUDE_PENDING or PLAID_INCLUDE_PENDING) is set. Remove it to enable this setting.

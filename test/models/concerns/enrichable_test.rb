@@ -7,7 +7,7 @@ class EnrichableTest < ActiveSupport::TestCase
 
   test "can enrich multiple attributes" do
     assert_difference "DataEnrichment.count", 2 do
-      @enrichable.enrich_attributes({ name: "Updated Checking", balance: 6_000 }, source: "plaid")
+      @enrichable.enrich_attributes({ name: "Updated Checking", balance: 6_000 }, source: "synth")
     end
 
     assert_equal "Updated Checking", @enrichable.name

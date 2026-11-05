@@ -9,11 +9,6 @@ require_relative "../config/environment"
 
 ENV["RAILS_ENV"] ||= "test"
 
-# Set Plaid to sandbox mode for tests
-ENV["PLAID_ENV"] = "sandbox"
-ENV["PLAID_CLIENT_ID"] ||= "test_client_id"
-ENV["PLAID_SECRET"] ||= "test_secret"
-
 # Fixes Segfaults on M1 Macs when running tests in parallel (temporary workaround)
 ENV["PGGSSENCMODE"] = "disable"
 
@@ -53,8 +48,6 @@ VCR.configure do |config|
   config.filter_sensitive_data("<OPENAI_ORGANIZATION_ID>") { ENV["OPENAI_ORGANIZATION_ID"] }
   config.filter_sensitive_data("<STRIPE_SECRET_KEY>") { ENV["STRIPE_SECRET_KEY"] }
   config.filter_sensitive_data("<STRIPE_WEBHOOK_SECRET>") { ENV["STRIPE_WEBHOOK_SECRET"] }
-  config.filter_sensitive_data("<PLAID_CLIENT_ID>") { ENV["PLAID_CLIENT_ID"] }
-  config.filter_sensitive_data("<PLAID_SECRET>") { ENV["PLAID_SECRET"] }
 end
 
 # Configure OmniAuth for testing

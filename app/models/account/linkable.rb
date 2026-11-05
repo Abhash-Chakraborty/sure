@@ -5,25 +5,19 @@ module Account::Linkable
     # New generic provider association
     has_many :account_providers, dependent: :destroy
 
-    # Legacy provider associations - kept for backward compatibility during migration
-    belongs_to :plaid_account, optional: true
-    belongs_to :simplefin_account, optional: true
-
     # SQL-level mirror of `linked?`. Use this for set-based checks (e.g. bulk
     # `EXISTS`) so both definitions stay in sync. If `linked?` adds a new
     # provider source, update this scope too.
     scope :linked, -> {
       left_outer_joins(:account_providers)
-        .where(
-          "account_providers.id IS NOT NULL OR accounts.plaid_account_id IS NOT NULL OR accounts.simplefin_account_id IS NOT NULL"
-        )
+        .where("account_providers.id IS NOT NULL")
         .distinct
     }
   end
 
-  # A "linked" account gets transaction and balance data from a third party like Plaid or SimpleFin
+  # A "linked" account gets transaction and balance data from a third-party provider
   def linked?
-    account_providers.any? || plaid_account.present? || simplefin_account.present?
+    account_providers.any?
   end
 
   # An "offline" or "unlinked" account is one where the user tracks values and
@@ -52,21 +46,14 @@ module Account::Linkable
     account_provider&.adapter
   end
 
-  # Returns the raw provider account record (e.g. EnableBankingAccount) for a specific provider type
+  # Returns the raw provider account record for a specific provider type
   def provider_account_for(provider_type)
     account_providers.find_by(provider_type: provider_type)&.provider
   end
 
   # Convenience method to get the provider name
   def provider_name
-    # Try new system first
-    return provider&.provider_name if provider.present?
-
-    # Fall back to legacy system
-    return "plaid" if plaid_account.present?
-    return "simplefin" if simplefin_account.present?
-
-    nil
+    provider&.provider_name
   end
 
   # Check if account is linked to a specific provider
@@ -78,11 +65,9 @@ module Account::Linkable
   # transactions, and therefore honors `enable_category_matcher`. Add a provider
   # here only once its entry processor checks the toggle; listing one that
   # ignores it shows the user a switch that does nothing.
-  CATEGORY_MATCHER_PROVIDER_TYPES = %w[PlaidAccount UpAccount MonobankAccount].freeze
+  CATEGORY_MATCHER_PROVIDER_TYPES = [].freeze
 
   def supports_category_matcher?
-    return true if plaid_account.present?
-
     account_providers.exists?(provider_type: CATEGORY_MATCHER_PROVIDER_TYPES)
   end
 

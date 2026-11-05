@@ -85,17 +85,6 @@ class RecurringTransaction::MatcherTest < ActiveSupport::TestCase
     assert_equal 0, occurrence.reload.allocations.count
   end
 
-  test "a pending charge is suggested at most, never auto-linked" do
-    series = create_series(name: nil, merchant: merchants(:netflix), amount: 119.99, day_offset: 1)
-    occurrence = series.recurring_occurrences.order(:due_on).first
-    create_entry(amount: 119.99, date: Date.current, merchant: merchants(:netflix),
-                 extra: { "simplefin" => { "pending" => true } })
-
-    @matcher.run!
-
-    assert occurrence.allocations.sole.allocation_suggested?
-  end
-
   # The payment review queue is where suggestions land, and income review has
   # no home there: a paycheck is not a bill anyone needs to approve paying.
   test "an income series never suggests, while the same shape on a bill does" do

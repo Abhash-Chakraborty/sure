@@ -479,20 +479,6 @@ class AccountTest < ActiveSupport::TestCase
     assert_equal opening_balance_date, account.valuations.opening_anchor.first.entry.date
   end
 
-  test "a provider-created loan keeps the default opening date" do
-    item = SimplefinItem.create!(family: @family, name: "SF Conn", access_url: "https://example.com/access")
-    simplefin_account = SimplefinAccount.create!(
-      simplefin_item: item, name: "My Loan", account_id: "acct_424",
-      currency: "USD", account_type: "loan", current_balance: 5_000
-    )
-
-    account = Account.create_from_simplefin_account(simplefin_account, "Loan")
-
-    assert_nil account.accountable.start_date
-    assert_equal 2.years.ago.to_date, account.valuations.opening_anchor.first.entry.date
-    assert_equal 1, account.entries.valuations.count
-  end
-
   test "create_and_sync uses provided opening balance date" do
     Account.any_instance.stubs(:sync_later)
     opening_date = Time.zone.today
@@ -879,57 +865,6 @@ class AccountTest < ActiveSupport::TestCase
     assert_equal "read_write", account.account_shares.find_by(user: @member).permission
   end
 
-  test "current_holdings prefers latest provider snapshot holdings across currencies" do
-    account = @family.accounts.create!(
-      owner: @admin,
-      name: "Linked Brokerage",
-      balance: 1000,
-      currency: "USD",
-      accountable: Investment.new
-    )
-
-    coinstats_item = @family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Brokerage", currency: "USD")
-    account_provider = AccountProvider.create!(account: account, provider: coinstats_account)
-
-    eur_security = Security.create!(ticker: "ASML", name: "ASML")
-    chf_security = Security.create!(ticker: "NOVN", name: "Novartis")
-
-    provider_holding = account.holdings.create!(
-      security: eur_security,
-      date: Date.current,
-      qty: 2,
-      price: 500,
-      amount: 1000,
-      currency: "EUR",
-      account_provider: account_provider,
-      cost_basis: 450
-    )
-
-    account.holdings.create!(
-      security: eur_security,
-      date: Date.current,
-      qty: 2,
-      price: 540,
-      amount: 1080,
-      currency: "USD"
-    )
-
-    second_provider_holding = account.holdings.create!(
-      security: chf_security,
-      date: Date.current,
-      qty: 3,
-      price: 90,
-      amount: 270,
-      currency: "CHF",
-      account_provider: account_provider,
-      cost_basis: 80
-    )
-
-    assert_equal [ provider_holding.id, second_provider_holding.id ].sort, account.current_holdings.pluck(:id).sort
-    assert_equal %w[CHF EUR], account.current_holdings.pluck(:currency).sort
-  end
-
   test "on account destroyed cascade transfer destroyed" do
     outflow_account = @family.accounts.create!({
       owner: @admin,
@@ -1124,47 +1059,15 @@ class AccountTest < ActiveSupport::TestCase
     assert_equal ten_years_ago, account.history_start_date
   end
 
-  test "history_start_date ignores pending transactions" do
-    account = @family.accounts.create!(
-      owner: @admin,
-      name: "Pending Account",
-      balance: 0,
-      currency: "USD",
-      accountable: Depository.new
-    )
-    account.entries.destroy_all
-    account.balances.destroy_all
-
-    posted_date = 5.days.ago.to_date
-    account.entries.create!(
-      name: "Posted Entry",
-      date: posted_date,
-      amount: 100,
-      currency: "USD",
-      entryable: Transaction.new
-    )
-
-    account.entries.create!(
-      name: "Pending Entry",
-      date: 10.days.ago.to_date,
-      amount: 50,
-      currency: "USD",
-      entryable: Transaction.new(extra: { "plaid" => { "pending" => true } })
-    )
-
-    assert_equal posted_date, account.history_start_date
-  end
-
   test "history_start_date on linked investment account resolves to provider activity ignoring default anchor" do
     account = @family.accounts.create!(
       owner: @admin,
       name: "Linked Investment Account",
       balance: 0,
       currency: "USD",
-      accountable: Investment.new,
-      plaid_account: plaid_accounts(:one)
+      accountable: Investment.new
     )
-    assert account.linked?
+    account.stubs(:linked?).returns(true)
 
     default_anchor_date = 2.years.ago.to_date
     account.set_opening_anchor_balance(balance: 0, date: default_anchor_date)
@@ -1188,10 +1091,9 @@ class AccountTest < ActiveSupport::TestCase
       name: "Fresh Linked Investment",
       balance: 0,
       currency: "USD",
-      accountable: Investment.new,
-      plaid_account: plaid_accounts(:one)
+      accountable: Investment.new
     )
-    assert account.linked?
+    account.stubs(:linked?).returns(true)
 
     default_anchor_date = 2.years.ago.to_date
     account.set_opening_anchor_balance(balance: 0, date: default_anchor_date)

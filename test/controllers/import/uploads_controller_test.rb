@@ -44,7 +44,7 @@ class Import::UploadsControllerTest < ActionDispatch::IntegrationTest
     assert_select 'select[name="import[account_id]"] option', text: "Checking Account"
     assert_select 'select[name="import[account_id]"] option', text: "Collectable Account", count: 0
     assert_select 'select[name="import[account_id]"] option', text: "IOU (personal debt to friend)", count: 0
-    assert_select 'select[name="import[account_id]"] option', text: "Plaid Depository Account", count: 0
+    assert_select 'select[name="import[account_id]"] option', text: "Connected Depository Account", count: 0
   end
 
   test "respects SURE_IMPORT_MAX_NDJSON_SIZE_MB when uploading Sure import file (#3010)" do

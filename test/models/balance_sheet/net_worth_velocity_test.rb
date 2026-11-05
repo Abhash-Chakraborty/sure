@@ -164,18 +164,6 @@ class BalanceSheet::NetWorthVelocityTest < ActiveSupport::TestCase
     assert_not_nil result.momentum
   end
 
-  # The series is not drawn from a pending transaction, so one dated before the
-  # real history must not stand in for it.
-  test "a pending transaction dated before the history does not count as history" do
-    track(history_from: @period.start_date + 3) { |date| level(date, prior_gain: 0, current_gain: 3_000) }
-    @account.entries.create!(
-      name: "Pending", date: @prior.start_date - 5, amount: 10, currency: "USD",
-      entryable: Transaction.new(extra: { "simplefin" => { "pending" => true } })
-    )
-
-    assert_nil velocity.velocity
-  end
-
   # The issue names NetWorthBreakdownSeriesBuilder#breakdown_series as the source,
   # which also keeps the figure on the series the Reports page draws.
   test "velocity and momentum are read from the breakdown series, one window each" do

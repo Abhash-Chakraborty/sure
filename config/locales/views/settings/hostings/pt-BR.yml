@@ -32,7 +32,6 @@ pt-BR:
         securities_provider_label: Provedor de Ativos (Preços de Ações)
         env_configured_message: A seleção de provedor está desabilitada porque variáveis de ambiente (EXCHANGE_RATE_PROVIDER ou SECURITIES_PROVIDER) estão definidas. Para habilitar a seleção aqui, remova essas variáveis de ambiente da sua configuração.
         providers:
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
       brand_fetch_settings:
         description: Insira o Client ID fornecido pelo Brandfetch
@@ -58,14 +57,6 @@ pt-BR:
         status_inactive: Falha na conexão com o Yahoo Finance
         connection_failed: Não foi possível conectar ao Yahoo Finance
         troubleshooting: Verifique sua conexão com a internet e as configurações de firewall. O Yahoo Finance pode estar temporariamente indisponível.
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} chamadas diárias da API usadas (%{percentage})"
-        description: Insira a chave de API fornecida pela Twelve Data
-        env_configured_message: Configurado com sucesso através da variável de ambiente TWELVE_DATA_API_KEY.
-        label: Chave de API
-        placeholder: Insira sua chave de API aqui
-        plan: "plano %{plan}"
-        title: Twelve Data
       update:
         failure: Valor de configuração inválido
         success: Configurações atualizadas

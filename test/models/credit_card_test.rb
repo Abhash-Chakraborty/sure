@@ -264,15 +264,12 @@ class CreditCardTest < ActiveSupport::TestCase
     assert_equal 0, card.accrued_since_last_close_money(as_of: Date.new(2026, 10, 16)).amount
   end
 
-  test "pending entries and split parents stay out of the statement, as they do of the balance" do
+  test "split parents stay out of the statement, as they do of the balance" do
     card = statement_card(close_day: 25, due_day: 5)
     account = card.account
     as_of = Date.new(2026, 10, 16)
 
     charge(account, Date.new(2026, 9, 10), 100)
-
-    pending = charge(account, Date.new(2026, 9, 11), 500)
-    Transaction.find(pending.entryable_id).update!(extra: { "plaid" => { "pending" => true } })
 
     # A split parent is replaced by its children, so the 300 stays in the
     # statement once and the parent row itself never counts.

@@ -10,23 +10,18 @@ pl:
     appearance: Wygląd
     appearances: Wygląd
     bank_sync: Synchronizacja z bankiem
-    binance_items: Binance
-    brex_items: Brex
     budget_categories: Kategorie budżetu
     budgets: Budżety
     categories: Kategorie
     categorize: Kategoryzuj
     changelog: Co nowego
     chats: Czaty
-    coinbase_items: Coinbase
-    coinstats_items: CoinStats
     credit_cards: Karty kredytowe
     cryptos: Kryptowaluty
     dashboard: Pulpit
     debug: Debugowanie
     debugs: Debugowanie
     depositories: Konta gotówkowe
-    enable_banking_items: Enable Banking
     exports: Eksporty
     family_exports: Eksporty
     family_merchants: Kontrahenci
@@ -35,32 +30,25 @@ pl:
     holdings: Pozycje
     home: Strona główna
     hostings: Hosting własny
-    ibkr_items: Interactive Brokers
     impersonation_sessions: Podszywanie się
     imports: Importy
-    indexa_capital_items: Indexa Capital
     intro: Wprowadzenie
     investments: Inwestycje
     invitations: Zaproszenia
     invite_codes: Kody zaproszeń
-    kraken_items: Kraken
     llm_usage: Użycie LLM
     llm_usages: Użycie LLM
     loans: Pożyczki
-    lunchflow_items: Lunch Flow
     mcp: Serwer MCP
     merchants: Kontrahenci
-    mercury_items: Mercury
     messages: Wiadomości
     mfa: Uwierzytelnianie dwuskładnikowe
-    monobank_items: Monobank
     oidc_accounts: Konta SSO
     onboardings: Wprowadzenie
     other_assets: Inne aktywa
     other_liabilities: Inne zobowiązania
     payments: Płatności
     pending_duplicate_merges: Przegląd duplikatów
-    plaid_items: Plaid
     plan: Plan
     preferences: Preferencje
     profile: Dane profilu
@@ -68,7 +56,6 @@ pl:
     properties: Nieruchomości
     providers: Dostawcy
     recurring_transactions: Cykliczne
-    redbark_items: Redbark
     registrations: Rejestracja
     reports: Raporty
     rules: Reguły
@@ -76,9 +63,6 @@ pl:
     security: Bezpieczeństwo
     self_hosting: Hosting własny
     sessions: Logowanie
-    simplefin_items: SimpleFIN
-    snaptrade_items: SnapTrade
-    sophtron_items: Sophtron
     splits: Podział
     sso_identities: Połączenia SSO
     sso_providers: Dostawcy SSO

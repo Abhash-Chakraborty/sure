@@ -111,9 +111,10 @@ class Transaction < ApplicationRecord
   # Internal movement labels that should be excluded from budget (auto cash management)
   INTERNAL_MOVEMENT_LABELS = [ "Transfer", "Sweep In", "Sweep Out", "Exchange" ].freeze
 
-  # Providers that support pending transaction flags
+  # Providers that support pending transaction flags (stored as
+  # extra["<provider>"]["pending"]). No installed provider writes one.
   # sorted
-  PENDING_PROVIDERS = %w[akahu enable_banking financekit lunchflow mercury monobank plaid redbark simplefin up].freeze
+  PENDING_PROVIDERS = %w[].freeze
 
   # Slice size for the entry touch in reassign_category! — bounds the UPDATE
   # statement size when a merge or category destroy hits many transactions.
@@ -171,7 +172,8 @@ class Transaction < ApplicationRecord
         "COALESCE(t.extra -> '#{provider}' ->> 'pending', '') NOT IN (#{PENDING_FLAG_FALSE_VALUES_SQL})"
       end
       .join(" OR ")
-      .then { |predicate| "(#{predicate})" }
+      .presence
+      .then { |predicate| "(#{predicate || "FALSE"})" }
       .freeze
   end
 

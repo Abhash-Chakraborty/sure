@@ -35,10 +35,6 @@ class Provider::Registry
       Setting.llm_provider == "anthropic" ? %i[anthropic openai] : %i[openai anthropic]
     end
 
-    def plaid_provider_for_region(region)
-      region.to_sym == :us ? plaid_us : plaid_eu
-    end
-
     private
       def stripe
         secret_key = ENV["STRIPE_SECRET_KEY"]
@@ -47,32 +43,6 @@ class Provider::Registry
         return nil unless secret_key.present? && webhook_secret.present?
 
         Provider::Stripe.new(secret_key:, webhook_secret:)
-      end
-
-      def twelve_data
-        api_key = ENV["TWELVE_DATA_API_KEY"].presence || Setting.twelve_data_api_key
-
-        return nil unless api_key.present?
-
-        Provider::TwelveData.new(api_key)
-      end
-
-      def plaid_us
-        Provider::PlaidAdapter.ensure_configuration_loaded
-        config = Rails.application.config.plaid
-
-        return nil unless config.present?
-
-        Provider::Plaid.new(config, region: :us)
-      end
-
-      def plaid_eu
-        Provider::PlaidEuAdapter.ensure_configuration_loaded
-        config = Rails.application.config.plaid_eu
-
-        return nil unless config.present?
-
-        Provider::Plaid.new(config, region: :eu)
       end
 
       def github
@@ -124,38 +94,6 @@ class Provider::Registry
         Provider::YahooFinance.new
       end
 
-      def tiingo
-        api_key = ENV["TIINGO_API_KEY"].presence || Setting.tiingo_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::Tiingo.new(api_key)
-      end
-
-      def eodhd
-        api_key = ENV["EODHD_API_KEY"].presence || Setting.eodhd_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::Eodhd.new(api_key)
-      end
-
-      def alpha_vantage
-        api_key = ENV["ALPHA_VANTAGE_API_KEY"].presence || Setting.alpha_vantage_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::AlphaVantage.new(api_key)
-      end
-
-      def mansa
-        api_key = ENV["MANSA_API_KEY"].presence || Setting.mansa_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::Mansa.new(api_key)
-      end
-
       def mfapi
         Provider::Mfapi.new
       end
@@ -164,44 +102,8 @@ class Provider::Registry
         Provider::BinancePublic.new
       end
 
-      def moex_public
-        Provider::MoexPublic.new
-      end
-
       def frankfurter
         Provider::Frankfurter.new
-      end
-
-      def tinkoff_invest
-        api_key = ENV["TINKOFF_INVEST_API_KEY"].presence || Setting.tinkoff_invest_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::TinkoffInvest.new(api_key)
-      end
-
-      def rentcast
-        api_key = ENV["RENTCAST_API_KEY"].presence || Setting.rentcast_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::Rentcast.new(api_key)
-      end
-
-      def realie
-        api_key = ENV["REALIE_API_KEY"].presence || Setting.realie_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::Realie.new(api_key)
-      end
-
-      def chimnie
-        api_key = ENV["CHIMNIE_API_KEY"].presence || Setting.chimnie_api_key # pipelock:ignore
-
-        return nil unless api_key.present?
-
-        Provider::Chimnie.new(api_key)
       end
   end
 
@@ -233,9 +135,9 @@ class Provider::Registry
     def available_providers
       case concept
       when :exchange_rates
-        %i[twelve_data yahoo_finance moex_public frankfurter]
+        %i[yahoo_finance frankfurter]
       when :securities
-        %i[twelve_data yahoo_finance tiingo eodhd alpha_vantage mfapi binance_public moex_public tinkoff_invest mansa]
+        %i[yahoo_finance mfapi binance_public]
       when :llm
         %i[openai anthropic]
       when :classification
@@ -245,9 +147,9 @@ class Provider::Registry
         # builds them by name when benchmarking against Jev.
         %i[jev]
       when :property_valuations
-        %i[rentcast realie chimnie]
+        []
       else
-        %i[plaid_us plaid_eu github openai anthropic]
+        %i[github openai anthropic]
       end
     end
 end

@@ -5,7 +5,7 @@ require Rails.root.join("db/migrate/20260925220151_null_provider_merchant_colors
 
 class NullProviderMerchantColorsMigrationTest < ActiveSupport::TestCase
   setup do
-    @provider_merchant = ProviderMerchant.create!(name: "Legacy", source: "plaid")
+    @provider_merchant = ProviderMerchant.create!(name: "Legacy", source: "synth")
     @provider_merchant.update_column(:color, "#654321")
     @family_merchant = families(:dylan_family).merchants.create!(name: "Mine", color: "#4da568")
   end

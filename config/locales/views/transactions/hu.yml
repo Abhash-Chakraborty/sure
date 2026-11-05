@@ -98,10 +98,6 @@ hu:
       tab_upcoming: Közelgő
       uncategorized: "(kategorizálatlan)"
       additional_details: "További részletek"
-      payee: "Kedvezményezett"
-      description: "Leírás"
-      memo: "Megjegyzés"
-      provider_extras: "Szolgáltatói kiegészítők"
       transfer_or_debt_payment: "Átutalás vagy adósságtörlesztés?"
       open_matcher: "Összevonó megnyitása"
       convert: "Konvertálás"

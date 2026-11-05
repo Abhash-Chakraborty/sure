@@ -12,6 +12,16 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
   # Bills has always linked out to transactions. Until now nothing linked back,
   # so a transaction that settled a bill was a dead end. The link-back is part
   # of the preview-gated bills surface, so the viewer needs the flag.
+  test "index loads the merchant list on demand and keeps selected merchants in the form" do
+    get transactions_url(q: { merchants: [ "Amazon" ] })
+
+    assert_response :success
+    assert_select "#transactions-search turbo-frame#merchant_filter_options[loading=lazy][data-action=?]", "turbo:frame-load->list-filter#filter" do
+      assert_select "input[type=hidden][name='q[merchants][]'][value=?]", "Amazon"
+    end
+    assert_select "input[type=checkbox][name='q[merchants][]']", count: 0
+  end
+
   test "a German transaction shows the bill it paid with localized copy" do
     @user.update!(locale: "de")
     @user.update!(preferences: (@user.preferences || {}).merge("preview_features_enabled" => true))
@@ -1977,7 +1987,7 @@ end
     # Recurring detection copies transaction.merchant_id, which can point at a
     # shared ProviderMerchant (not just a family-owned FamilyMerchant) -- e.g.
     # ProviderMerchant::Enhancer updates these after the recurring row exists.
-    provider_merchant = ProviderMerchant.create!(name: "Provider Merchant Original", source: "enable_banking")
+    provider_merchant = ProviderMerchant.create!(name: "Provider Merchant Original", source: "synth")
     recurring = recurring_transactions(:netflix_subscription)
     recurring.update!(merchant: provider_merchant, name: nil)
 

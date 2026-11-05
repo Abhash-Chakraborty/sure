@@ -2,284 +2,6 @@ require "sidekiq/web"
 require "sidekiq/cron/web"
 
 Rails.application.routes.draw do
-  resources :questrade_items, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-  resources :indexa_capital_items, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-  resources :mercury_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :wise_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :select_profiles
-      post :link_profiles
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-      post :generate_sca_keypair
-    end
-  end
-
-  resources :brex_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :preload_accounts, to: "brex_items/account_flows#preload_accounts"
-      get :select_accounts, to: "brex_items/account_flows#select_accounts"
-      post :link_accounts, to: "brex_items/account_flows#link_accounts"
-      get :select_existing_account, to: "brex_items/account_flows#select_existing_account"
-      post :link_existing_account, to: "brex_items/account_flows#link_existing_account"
-    end
-
-    member do
-      post :sync
-      get :setup_accounts, to: "brex_items/account_setups#setup_accounts"
-      post :complete_account_setup, to: "brex_items/account_setups#complete_account_setup"
-    end
-  end
-
-  resources :coinbase_items, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :binance_items, only: [ :index, :new, :create, :show, :edit, :update, :destroy ] do
-    collection do
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :kraken_items, only: [ :create, :update, :destroy ] do
-    collection do
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :coinspot_items, only: [ :create, :update, :destroy ] do
-    collection do
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  # Self-custody / on-chain wallets
-  resources :onchain_wallet_items, only: [ :update, :destroy ] do
-    collection do
-      get :new_wallet
-      post :preview_wallet
-      post :link_wallet
-      post :enable_crypto_prices
-    end
-
-    member do
-      post :sync
-      get :manage
-      get :review_tokens
-      post :update_tokens
-      delete :disconnect_wallet
-      delete :disconnect_asset
-    end
-  end
-
-  resources :snaptrade_items, only: [ :index, :show, :destroy ] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      get :select_existing_account
-      post :link_existing_account
-      get :callback
-      get :oauth_authorize
-      get :oauth_callback
-      get :oauth_device_authorize
-      post :start_oauth_device_flow
-    end
-
-    member do
-      post :sync
-      get :connect
-      get :setup_accounts
-      post :complete_account_setup
-      get :connections
-      post :complete_oauth_device_flow
-      delete :delete_connection
-    end
-  end
-
-  resources :ibkr_items, only: [ :create, :update, :destroy ] do
-    collection do
-      get :select_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :trading212_items, only: [ :create, :update, :destroy ] do
-    collection do
-      get :select_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  # Trade Republic routes (login steps are TR-specific: web login needs a
-  # two-phase initiate/confirm handshake with the Trade Republic app)
-  resources :trade_republic_items, only: [ :show, :create, :update, :destroy ] do
-    collection do
-      get :select_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      post :repair
-      get :setup_accounts
-      post :complete_account_setup
-      post :initiate_login
-      post :complete_login
-      post :poll_login
-      post :initiate_qr_login
-      post :poll_qr_login
-      post :cancel_qr_login
-    end
-  end
-
-  # CoinStats routes
-  resources :coinstats_items, only: [ :index, :new, :create, :update, :destroy ] do
-    collection do
-      post :link_wallet
-      post :link_exchange
-    end
-    member do
-      post :sync
-    end
-  end
-
-  resources :enable_banking_items, only: [ :new, :create, :update, :destroy ] do
-    collection do
-      get :callback
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-    member do
-      post :sync
-      get :select_bank
-      post :authorize
-      post :reauthorize
-      get :setup_accounts
-      post :complete_account_setup
-      post :new_connection
-    end
-  end
-  resources :truelayer_items, only: [ :create, :update, :destroy ] do
-    collection do
-      get :callback
-      post :connect
-      get :select_existing_account
-      post :link_existing_account
-    end
-    member do
-      post :sync
-      post :reauthorize
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
   get ".well-known/oauth-protected-resource(/*resource_path)",
       to: "oauth_metadata#protected_resource",
       as: :oauth_protected_resource_metadata,
@@ -583,6 +305,7 @@ Rails.application.routes.draw do
 
   namespace :transactions do
     resource :bulk_deletion, only: :create
+    resource :merchant_filter, only: :show
     resource :bulk_update, only: %i[new create]
     resource :categorize, only: %i[show create] do
       patch :assign_entry, on: :collection
@@ -708,6 +431,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :rule_groups, only: %i[new create edit update destroy] do
+    member do
+      patch :reorder
+      patch :activation
+    end
+  end
+
   resources :accounts, only: %i[index new show destroy], shallow: true do
     member do
       post :sync
@@ -778,18 +508,6 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
-      namespace :financekit do
-        get "capabilities", to: "connections#capabilities"
-        resources :connections, only: [ :create, :show, :destroy ] do
-          put "account_mappings/:source_id", to: "connections#mapping"
-          post :activate, to: "connections#activate"
-          post :credential, to: "connections#credential"
-          post :repair, to: "connections#repair"
-          resources :conflicts, only: [ :index, :update ]
-        end
-        post "publishers/:publisher_id/batches", to: "batches#create", as: :publisher_batches_upload
-        get "publishers/:publisher_id/batches/:batch_id", to: "batches#show", as: :publisher_batch_status
-      end
       # Authentication endpoints
       post "auth/signup", to: "auth#signup"
       post "auth/login", to: "auth#login"
@@ -868,8 +586,6 @@ Rails.application.routes.draw do
     end
   end
 
-
-
   resources :currencies, only: %i[show]
 
   resources :impersonation_sessions, only: [ :create ] do
@@ -883,149 +599,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :plaid_items, only: %i[new edit create destroy] do
-    collection do
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-    end
-  end
-
-  resources :simplefin_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      post :balances
-      get :setup_accounts
-      post :complete_account_setup
-      post :dismiss_replacement_suggestion
-    end
-  end
-
-  resources :lunchflow_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :redbark_items, only: %i[create update destroy] do
-    collection do
-      get :select_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :akahu_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :up_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :monobank_items, only: %i[create update destroy] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :fio_items, only: %i[create update destroy] do
-    collection do
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :sync
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
-  resources :sophtron_items, only: %i[index new create show edit update destroy] do
-    collection do
-      get :preload_accounts
-      get :select_accounts
-      post :link_accounts
-      get :select_existing_account
-      post :link_existing_account
-    end
-
-    member do
-      post :connect_institution
-      post :sync
-      post :toggle_manual_sync
-      post :balances
-      get :connection_status
-      post :submit_mfa
-      get :setup_accounts
-      post :complete_account_setup
-    end
-  end
-
   namespace :webhooks do
-    post "plaid"
-    post "plaid_eu"
     post "stripe"
   end
 

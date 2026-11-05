@@ -97,9 +97,6 @@ uk:
       agri_land:
         short: С/г земля
         long: Сільськогосподарська земля
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
     form_tabs:
       address: Адреса
       overview: Огляд

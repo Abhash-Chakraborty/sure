@@ -419,9 +419,7 @@ class Holding::ReverseCalculatorTest < ActiveSupport::TestCase
       entryable: Valuation.new(kind: "opening_anchor")
     )
 
-    coinstats_item = @account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account_provider = AccountProvider.create!(account: @account, provider: coinstats_account)
+    account_provider = link_provider!(@account)
     @account.holdings.create!(
       security: security, date: 2.days.ago.to_date, qty: 10, price: 100, amount: 1000,
       currency: "USD", account_provider: account_provider
@@ -449,9 +447,7 @@ class Holding::ReverseCalculatorTest < ActiveSupport::TestCase
     Security::Price.create!(security: security, date: 1.day.ago.to_date, price: 50)
     Security::Price.create!(security: security, date: Date.current, price: 50)
 
-    coinstats_item = @account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account_provider = AccountProvider.create!(account: @account, provider: coinstats_account)
+    account_provider = link_provider!(@account)
     @account.holdings.create!(
       security: security, date: 10.days.ago.to_date, qty: 10, price: 100, amount: 1000,
       currency: "USD", account_provider: account_provider
@@ -690,5 +686,13 @@ class Holding::ReverseCalculatorTest < ActiveSupport::TestCase
         currency: "USD",
         security: @wmt
       )
+    end
+
+    # No provider account model is installed, so the link is a bare
+    # account_providers row (skipping the polymorphic presence validation).
+    # The code under test only reads holdings' account_provider_id.
+    def link_provider!(account)
+      AccountProvider.new(account: account, provider_type: "TestProviderAccount", provider_id: SecureRandom.uuid)
+        .tap { |link| link.save!(validate: false) }
     end
 end

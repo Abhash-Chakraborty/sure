@@ -45,15 +45,15 @@ class SyncTest < ActiveSupport::TestCase
 
   test "can run nested syncs that alert the parent when complete" do
     family = families(:dylan_family)
-    plaid_item = plaid_items(:one)
+    parent_account = accounts(:depository)
     account = accounts(:connected)
 
     family_sync = Sync.create!(syncable: family)
-    plaid_item_sync = Sync.create!(syncable: plaid_item, parent: family_sync)
-    account_sync = Sync.create!(syncable: account, parent: plaid_item_sync)
+    parent_account_sync = Sync.create!(syncable: parent_account, parent: family_sync)
+    account_sync = Sync.create!(syncable: account, parent: parent_account_sync)
 
     assert_equal "pending", family_sync.status
-    assert_equal "pending", plaid_item_sync.status
+    assert_equal "pending", parent_account_sync.status
     assert_equal "pending", account_sync.status
 
     family.expects(:perform_sync).with(family_sync).once
@@ -62,42 +62,40 @@ class SyncTest < ActiveSupport::TestCase
 
     assert_equal "syncing", family_sync.reload.status
 
-    plaid_item.expects(:perform_sync).with(plaid_item_sync).once
+    parent_account.expects(:perform_sync).with(parent_account_sync).once
 
-    plaid_item_sync.perform
+    parent_account_sync.perform
 
     assert_equal "syncing", family_sync.reload.status
-    assert_equal "syncing", plaid_item_sync.reload.status
+    assert_equal "syncing", parent_account_sync.reload.status
 
     account.expects(:perform_sync).with(account_sync).once
 
     # Since these are accessed through `parent`, they won't necessarily be the same
     # instance we configured above
-    Account.any_instance.expects(:perform_post_sync).once
-    Account.any_instance.expects(:broadcast_sync_complete).once
-    PlaidItem.any_instance.expects(:perform_post_sync).once
-    PlaidItem.any_instance.expects(:broadcast_sync_complete).once
+    Account.any_instance.expects(:perform_post_sync).twice
+    Account.any_instance.expects(:broadcast_sync_complete).twice
     Family.any_instance.expects(:perform_post_sync).once
     Family.any_instance.expects(:broadcast_sync_complete).once
 
     account_sync.perform
 
-    assert_equal "completed", plaid_item_sync.reload.status
+    assert_equal "completed", parent_account_sync.reload.status
     assert_equal "completed", account_sync.reload.status
     assert_equal "completed", family_sync.reload.status
   end
 
   test "failures propagate up the chain" do
     family = families(:dylan_family)
-    plaid_item = plaid_items(:one)
+    parent_account = accounts(:depository)
     account = accounts(:connected)
 
     family_sync = Sync.create!(syncable: family)
-    plaid_item_sync = Sync.create!(syncable: plaid_item, parent: family_sync)
-    account_sync = Sync.create!(syncable: account, parent: plaid_item_sync)
+    parent_account_sync = Sync.create!(syncable: parent_account, parent: family_sync)
+    account_sync = Sync.create!(syncable: account, parent: parent_account_sync)
 
     assert_equal "pending", family_sync.status
-    assert_equal "pending", plaid_item_sync.status
+    assert_equal "pending", parent_account_sync.status
     assert_equal "pending", account_sync.status
 
     family.expects(:perform_sync).with(family_sync).once
@@ -106,44 +104,42 @@ class SyncTest < ActiveSupport::TestCase
 
     assert_equal "syncing", family_sync.reload.status
 
-    plaid_item.expects(:perform_sync).with(plaid_item_sync).once
+    parent_account.expects(:perform_sync).with(parent_account_sync).once
 
-    plaid_item_sync.perform
+    parent_account_sync.perform
 
     assert_equal "syncing", family_sync.reload.status
-    assert_equal "syncing", plaid_item_sync.reload.status
+    assert_equal "syncing", parent_account_sync.reload.status
 
-    # This error should "bubble up" to the PlaidItem and Family sync results
+    # This error should "bubble up" to the parent account and Family sync results
     account.expects(:perform_sync).with(account_sync).raises(StandardError.new("test account sync error"))
 
     # Since these are accessed through `parent`, they won't necessarily be the same
     # instance we configured above
-    Account.any_instance.expects(:perform_post_sync).once
-    PlaidItem.any_instance.expects(:perform_post_sync).once
+    Account.any_instance.expects(:perform_post_sync).twice
     Family.any_instance.expects(:perform_post_sync).once
 
-    Account.any_instance.expects(:broadcast_sync_complete).once
-    PlaidItem.any_instance.expects(:broadcast_sync_complete).once
+    Account.any_instance.expects(:broadcast_sync_complete).twice
     Family.any_instance.expects(:broadcast_sync_complete).once
 
     account_sync.perform
 
-    assert_equal "failed", plaid_item_sync.reload.status
+    assert_equal "failed", parent_account_sync.reload.status
     assert_equal "failed", account_sync.reload.status
     assert_equal "failed", family_sync.reload.status
   end
 
   test "parent failure should not change status if child succeeds" do
     family = families(:dylan_family)
-    plaid_item = plaid_items(:one)
+    parent_account = accounts(:depository)
     account = accounts(:connected)
 
     family_sync = Sync.create!(syncable: family)
-    plaid_item_sync = Sync.create!(syncable: plaid_item, parent: family_sync)
-    account_sync = Sync.create!(syncable: account, parent: plaid_item_sync)
+    parent_account_sync = Sync.create!(syncable: parent_account, parent: family_sync)
+    account_sync = Sync.create!(syncable: account, parent: parent_account_sync)
 
     assert_equal "pending", family_sync.status
-    assert_equal "pending", plaid_item_sync.status
+    assert_equal "pending", parent_account_sync.status
     assert_equal "pending", account_sync.status
 
     family.expects(:perform_sync).with(family_sync).raises(StandardError.new("test family sync error"))
@@ -152,29 +148,27 @@ class SyncTest < ActiveSupport::TestCase
 
     assert_equal "failed", family_sync.reload.status
 
-    plaid_item.expects(:perform_sync).with(plaid_item_sync).raises(StandardError.new("test plaid item sync error"))
+    parent_account.expects(:perform_sync).with(parent_account_sync).raises(StandardError.new("test parent account sync error"))
 
-    plaid_item_sync.perform
+    parent_account_sync.perform
 
     assert_equal "failed", family_sync.reload.status
-    assert_equal "failed", plaid_item_sync.reload.status
+    assert_equal "failed", parent_account_sync.reload.status
 
     # Leaf level sync succeeds, but shouldn't change the status of the already-failed parent syncs
     account.expects(:perform_sync).with(account_sync).once
 
     # Since these are accessed through `parent`, they won't necessarily be the same
     # instance we configured above
-    Account.any_instance.expects(:perform_post_sync).once
-    PlaidItem.any_instance.expects(:perform_post_sync).once
+    Account.any_instance.expects(:perform_post_sync).twice
     Family.any_instance.expects(:perform_post_sync).once
 
-    Account.any_instance.expects(:broadcast_sync_complete).once
-    PlaidItem.any_instance.expects(:broadcast_sync_complete).once
+    Account.any_instance.expects(:broadcast_sync_complete).twice
     Family.any_instance.expects(:broadcast_sync_complete).once
 
     account_sync.perform
 
-    assert_equal "failed", plaid_item_sync.reload.status
+    assert_equal "failed", parent_account_sync.reload.status
     assert_equal "failed", family_sync.reload.status
     assert_equal "completed", account_sync.reload.status
   end
@@ -241,21 +235,6 @@ class SyncTest < ActiveSupport::TestCase
     assert_equal "completed", parent.reload.status
   end
 
-  test "a late provider complete! cannot resurrect a cancelled sync" do
-    item = SimplefinItem.create!(family: families(:dylan_family), name: "SF Conn", access_url: "https://example.com/access")
-    sync = Sync.create!(syncable: item, status: :syncing)
-
-    # Simulates the Sidekiq job's in-memory copy, loaded before cancellation
-    in_job_copy = Sync.find(sync.id)
-
-    assert sync.request_cancel!
-    assert_equal "stale", sync.reload.status
-
-    SimplefinItem::Syncer.new(item).send(:mark_completed, in_job_copy)
-
-    assert_equal "stale", sync.reload.status
-  end
-
   test "request_cancel! returns false for terminal syncs" do
     sync = Sync.create!(syncable: accounts(:depository), status: :completed)
 
@@ -265,11 +244,11 @@ class SyncTest < ActiveSupport::TestCase
 
   test "cancelling a running tree stales pending children and resolves the root to stale without post-sync" do
     family = families(:dylan_family)
-    plaid_item = plaid_items(:one)
+    parent_account = accounts(:depository)
     account = accounts(:connected)
 
     family_sync = Sync.create!(syncable: family, status: :syncing)
-    running_child = Sync.create!(syncable: plaid_item, parent: family_sync)
+    running_child = Sync.create!(syncable: parent_account, parent: family_sync)
     pending_child = Sync.create!(syncable: account, parent: running_child, status: :pending)
 
     running_child.start!
@@ -283,8 +262,8 @@ class SyncTest < ActiveSupport::TestCase
 
     # The running child finishes honestly; the cancelled root resolves to
     # stale and must not re-run family transfer matching / rules / broadcasts
-    PlaidItem.any_instance.expects(:perform_post_sync).once
-    PlaidItem.any_instance.expects(:broadcast_sync_complete).once
+    Account.any_instance.expects(:perform_post_sync).once
+    Account.any_instance.expects(:broadcast_sync_complete).once
     Family.any_instance.expects(:perform_post_sync).never
     Family.any_instance.expects(:broadcast_sync_complete).never
 
@@ -352,40 +331,6 @@ class SyncTest < ActiveSupport::TestCase
     ordered_ids = Sync.where(id: [ older_sync.id, newer_sync.id ]).ordered.pluck(:id)
 
     assert_equal [ newer_sync.id, older_sync.id ], ordered_ids
-  end
-
-  test "for_family includes syncable provider item associations from family reflections" do
-    family = families(:dylan_family)
-    syncable_item_associations = Family.reflect_on_all_associations(:has_many).select do |association|
-      association.name.to_s.end_with?("_items") &&
-        association.klass.included_modules.include?(Syncable)
-    rescue NameError
-      false
-    end
-
-    syncs = syncable_item_associations.filter_map do |association|
-      syncable = family.public_send(association.name).first
-      next unless syncable
-
-      Sync.create!(syncable: syncable, status: :completed)
-    end
-
-    assert syncs.any?, "Expected syncable provider item fixtures for this family"
-    assert_equal syncs.map(&:id).sort, Sync.for_family(family).where(id: syncs.map(&:id)).pluck(:id).sort
-  end
-
-  test "any_incomplete_for? fires on a Sync against any Syncable provider item association" do
-    family = families(:dylan_family)
-    Sync.for_family(family).incomplete.find_each(&:destroy)
-    assert_not Sync.any_incomplete_for?(family)
-
-    mercury_item = mercury_items(:one)
-    incomplete = Sync.create!(syncable: mercury_item, status: :pending)
-    assert Sync.any_incomplete_for?(family),
-           "any_incomplete_for? should report true for an in-flight Mercury sync"
-
-    incomplete.update!(status: :completed)
-    assert_not Sync.any_incomplete_for?(family)
   end
 
   test "any_incomplete_for? fires on a Sync against the family itself" do

@@ -6,7 +6,6 @@ class GoalTest < ActiveSupport::TestCase
   setup do
     @family = families(:dylan_family)
     @depository = accounts(:depository)
-    @connected = accounts(:connected)
     @goal = goals(:vacation_italy)
   end
 
@@ -300,7 +299,7 @@ class GoalTest < ActiveSupport::TestCase
     assert_equal 0, fresh.pace.to_d
   end
 
-  test "pace averages 90-day net inflow, excluding pending and excluded entries" do
+  test "pace averages 90-day net inflow, excluding excluded entries" do
     account = Account.create!(
       family: @family,
       accountable: Depository.new,
@@ -319,10 +318,6 @@ class GoalTest < ActiveSupport::TestCase
     create_transaction(account: account, amount: -300, date: 80.days.ago.to_date)
     create_transaction(account: account, amount: -300, date: 40.days.ago.to_date)
     create_transaction(account: account, amount: -300, date: 5.days.ago.to_date)
-
-    # Pending inflow that must be excluded by `Transaction.excluding_pending`.
-    pending_entry = create_transaction(account: account, amount: -1_000, date: 10.days.ago.to_date)
-    pending_entry.transaction.update!(extra: { "plaid" => { "pending" => true } })
 
     # User-excluded outflow that must be excluded by `entries.excluded = false`.
     excluded_entry = create_transaction(account: account, amount: 500, date: 20.days.ago.to_date)
@@ -386,24 +381,6 @@ class GoalTest < ActiveSupport::TestCase
   test "display_status falls through to status for active goals" do
     @goal.target_amount = 1
     assert_equal :reached, @goal.display_status
-  end
-
-  test "any_connected_account? reflects plaid_account presence" do
-    assert @goal.any_connected_account?
-    only_manual = goals(:emergency_fund)
-    only_manual.goal_accounts.where(account_id: @connected.id).destroy_all
-    assert_not only_manual.reload.any_connected_account?
-  end
-
-  test "pledge_action_label_key flips on manual-only goals" do
-    assert_equal "goals.show.pledge_just_transferred", @goal.pledge_action_label_key
-    @goal.goal_accounts.where(account_id: @connected.id).destroy_all
-    # After removing the only connected account, the goal is manual-only;
-    # the copy must flip to "pledge_just_saved" so users aren't told to
-    # wait for a sync that won't run. Refetch to exercise the real
-    # request lifecycle rather than poking a memo on the same instance.
-    reloaded = Goal.find(@goal.id)
-    assert_equal "goals.show.pledge_just_saved", reloaded.pledge_action_label_key
   end
 
   test "explicit allocation backs only the earmarked slice" do

@@ -55,7 +55,8 @@ class PropertyTest < ActiveSupport::TestCase
     property = accounts(:property).property
     property.update!(avm_provider: nil)
     stale = Property.find(property.id)
-    Provider::Registry.stubs(:rentcast).returns(mock)
+    # No AVM provider ships; stand in for one the property can be linked to.
+    stale.stubs(:avm_linkable?).with("rentcast").returns(true)
     Property.where(id: property.id).update_all(avm_provider: "realie", avm_last_synced_on: Date.current)
 
     SyncPropertyValuationsJob.expects(:perform_now).never

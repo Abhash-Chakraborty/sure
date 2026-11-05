@@ -6,6 +6,9 @@ module ExchangeRate::Provided
       provider = ENV["EXCHANGE_RATE_PROVIDER"].presence || Setting.exchange_rate_provider
       registry = Provider::Registry.for_concept(:exchange_rates)
       registry.get_provider(provider.to_sym)
+    rescue Provider::Registry::Error
+      # A saved choice can name a provider this install no longer ships.
+      registry.get_provider(:frankfurter)
     end
 
     # Maximum number of days to look back for a cached rate before calling the provider.

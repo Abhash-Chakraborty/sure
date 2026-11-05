@@ -73,7 +73,6 @@ de:
       additional_details: Weitere Details
       attachments: Anhänge
       convert: Umwandeln
-      description: Beschreibung
       keep_both: Nein, beide behalten
       loan_payment: Kreditrate
       mark_recurring: Als wiederkehrend markieren
@@ -83,16 +82,13 @@ de:
       applied_to_title: Damit bezahlte Rechnungen
       applied_to_detail: "%{amount} für die am %{date} fällige Rechnung"
       applied_to_unreviewed: Prüfung erforderlich
-      memo: Memo
       merge_duplicate: Ja, zusammenführen
       open_matcher: Zuordnung öffnen
-      payee: Empfänger
       pending_duplicate_merger_button: Zusammenführen öffnen
       pending_duplicate_merger_description: Führ diese offene Transaktion von Hand mit ihrer gebuchten Fassung zusammen.
       pending_duplicate_merger_title: Duplikat einer gebuchten Transaktion?
       potential_duplicate_description: Diese offene Transaktion ist womöglich dieselbe wie die gebuchte darunter. Führ sie in dem Fall zusammen, damit nichts doppelt zählt.
       potential_duplicate_title: Mögliches Duplikat erkannt
-      provider_extras: Anbieterdaten
       transfer: Überweisung
       transfer_matcher_description: Verknüpf diese Transaktion mit ihrem Gegenstück in einem anderen Konto.
       transfer_or_debt_payment: Überweisung oder Schuldentilgung?

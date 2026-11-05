@@ -14,56 +14,9 @@ class AccountsController < ApplicationController
           .listable_manual
           .where(id: @accessible_account_ids)
           .with_attached_logo
-          .includes(:accountable, :account_providers, :plaid_account, :simplefin_account)
+          .includes(:accountable, :account_providers)
           .order(:name)
-    @financekit_accounts = Current.family.accounts
-      .where(id: @accessible_account_ids).where.not(status: :pending_deletion)
-      .joins(:account_providers).where(account_providers: { provider_type: "FinancekitAccountLineage" })
-      .distinct.with_attached_logo.includes(:accountable, account_providers: :provider).order(:name)
-    @plaid_items = visible_provider_items(family.plaid_items.ordered.with_attached_logo.includes(:plaid_accounts))
-    @simplefin_items = visible_provider_items(family.simplefin_items.ordered.with_attached_logo)
-    @lunchflow_items = visible_provider_items(family.lunchflow_items.ordered.with_attached_logo.includes(:lunchflow_accounts))
-    @redbark_items = visible_provider_items(family.redbark_items.ordered.with_attached_logo.includes(:redbark_accounts))
-    @akahu_items = visible_provider_items(family.akahu_items.ordered.with_attached_logo.includes(:akahu_accounts))
-    @up_items = visible_provider_items(family.up_items.ordered.with_attached_logo.includes(:up_accounts))
-    @monobank_items = visible_provider_items(family.monobank_items.ordered.with_attached_logo.includes(:monobank_accounts))
-    @fio_items = visible_provider_items(family.fio_items.active.ordered.with_attached_logo.includes(:fio_accounts))
-    @enable_banking_items = visible_provider_items(family.enable_banking_items.ordered.with_attached_logo)
-    @truelayer_items = visible_provider_items(family.truelayer_items.connected.ordered.with_attached_logo.includes(:truelayer_accounts))
-    @coinstats_items = visible_provider_items(family.coinstats_items.ordered.with_attached_logo.includes(:coinstats_accounts, :accounts))
-    @mercury_items = visible_provider_items(family.mercury_items.ordered.with_attached_logo.includes(:mercury_accounts))
-    @brex_items = visible_provider_items(family.brex_items.ordered.with_attached_logo.includes(:accounts, brex_accounts: :account_provider))
-    @coinbase_items = visible_provider_items(family.coinbase_items.ordered.with_attached_logo.includes(:coinbase_accounts, :accounts))
-    @snaptrade_items = visible_provider_items(family.snaptrade_items.ordered.with_attached_logo.includes(:snaptrade_accounts))
-    @ibkr_items = visible_provider_items(family.ibkr_items.ordered.with_attached_logo.includes(:ibkr_accounts))
-    @indexa_capital_items = visible_provider_items(family.indexa_capital_items.ordered.with_attached_logo.includes(:indexa_capital_accounts))
-    @sophtron_items = visible_provider_items(family.sophtron_items.ordered.with_attached_logo.includes(:sophtron_accounts))
-    @onchain_wallet_items = visible_provider_items(
-      family.onchain_wallet_items.ordered.includes(:accounts, onchain_wallet_accounts: { account_provider: :account })
-    )
-    @binance_items = visible_provider_items(family.binance_items.ordered.with_attached_logo.includes(:binance_accounts, :accounts))
-    @kraken_items = visible_provider_items(family.kraken_items.ordered.with_attached_logo.includes(:kraken_accounts, :accounts))
-    @coinspot_items = visible_provider_items(family.coinspot_items.ordered.with_attached_logo.includes(:coinspot_accounts, :accounts))
-    @trading212_items = visible_provider_items(family.trading212_items.ordered.with_attached_logo.includes(:trading212_accounts)).sort_by(&:created_at)
-    @questrade_items = visible_provider_items(family.questrade_items.ordered.with_attached_logo.includes(:accounts, questrade_accounts: :account_provider))
-    @wise_items = visible_provider_items(family.wise_items.ordered.includes(:wise_accounts, :accounts))
-    @trade_republic_items = visible_provider_items(
-      family.trade_republic_items.ordered.includes(trade_republic_accounts: { account_provider: :account })
-    )
-
-    # An on-chain item is admitted as soon as ONE of its accounts is accessible,
-    # so the card is told which of them this viewer may actually see. nil is the
-    # admin case, which visible_provider_items already lets through whole.
-    allowed_ids = Current.user&.admin? ? nil : @accessible_account_ids
-    @onchain_wallet_cards = @onchain_wallet_items.to_h do |item|
-      visible = item.accounts_visible_to(allowed_ids)
-      [ item.id, { accounts: visible, address_count: item.address_count_for(visible) } ]
-    end
-
     preload_latest_sync_metadata_for_index!
-
-    # Build sync stats maps for all providers
-    build_sync_stats_maps
 
     # Prevent Turbo Drive from caching this page to ensure fresh account lists
     expires_now
@@ -78,7 +31,6 @@ class AccountsController < ApplicationController
   end
 
   def sync_all
-    family.request_plaid_transactions_refreshes_later(source: "AccountsController#sync_all")
     family.sync_later
     redirect_to accounts_path, notice: t("accounts.sync_all.syncing")
   end
@@ -197,11 +149,7 @@ class AccountsController < ApplicationController
           item = account_provider.adapter&.item
           next unless item && !item.syncing?
 
-          if item.is_a?(PlaidItem)
-            item.sync_later_with_provider_refresh
-          else
-            item.sync_later
-          end
+          item.sync_later
         end
       else
         # Manual accounts just need balance materialization
@@ -234,11 +182,9 @@ class AccountsController < ApplicationController
   end
 
   def sparkline
-    etag_key = @account.family.build_cache_key("#{@account.id}_sparkline_#{Account::Chartable::SPARKLINE_CACHE_VERSION}", invalidate_on_data_updates: true)
-
     # Short-circuit with 304 Not Modified when the client already has the latest version.
     # We defer the expensive series computation until we know the content is stale.
-    if stale?(etag: etag_key, last_modified: @account.family.latest_sync_completed_at)
+    if stale?(etag: @account.sparkline_cache_key)
       @sparkline_series = @account.sparkline_series
       render layout: false
     end
@@ -323,33 +269,14 @@ class AccountsController < ApplicationController
   def unlink
     begin
       Account.transaction do
-        @account.provider_account_for("FinancekitAccountLineage")&.disconnect!
-
         # Detach holdings from provider links before destroying them
         provider_link_ids = @account.account_providers.pluck(:id)
         if provider_link_ids.any?
           Holding.where(account_provider_id: provider_link_ids).update_all(account_provider_id: nil)
         end
 
-        # Capture provider accounts before clearing links (so we can destroy them)
-        simplefin_account_to_destroy = @account.simplefin_account
-
-        # Remove new system links (account_providers join table)
-        # SnaptradeAccount records are preserved (not destroyed) so users can relink later.
-        # This follows the Plaid pattern where the provider account survives as "unlinked".
-        # SnapTrade has limited connection slots (5 free), so preserving the record avoids
-        # wasting a slot on reconnect.
+        # Remove provider links (account_providers join table)
         @account.account_providers.reload.destroy_all
-
-        # Remove legacy system links (foreign keys)
-        @account.update!(plaid_account_id: nil, simplefin_account_id: nil)
-
-        # Destroy the SimplefinAccount record so it doesn't cause stale account issues
-        # This is safe because:
-        # - Account data (transactions, holdings, balances) lives on the Account, not SimplefinAccount
-        # - SimplefinAccount only caches API data which is regenerated on reconnect
-        # - If user reconnects SimpleFin later, a new SimplefinAccount will be created
-        simplefin_account_to_destroy&.destroy!
       end
 
       redirect_to accounts_path, notice: t("accounts.unlink.success")
@@ -522,43 +449,7 @@ class AccountsController < ApplicationController
     end
 
     def preload_latest_sync_metadata_for_index!
-      items = [
-        @plaid_items,
-        @simplefin_items,
-        @lunchflow_items,
-        @redbark_items,
-        @akahu_items,
-        @up_items,
-        @monobank_items,
-        @fio_items,
-        @enable_banking_items,
-        @truelayer_items,
-        @coinstats_items,
-        @mercury_items,
-        @brex_items,
-        @coinbase_items,
-        @snaptrade_items,
-        @ibkr_items,
-        @indexa_capital_items,
-        @sophtron_items,
-        @binance_items,
-        @kraken_items,
-        @coinspot_items,
-        @trading212_items,
-        @questrade_items,
-        @wise_items,
-        @trade_republic_items,
-        @onchain_wallet_items
-      ].flatten.compact
-
-      accounts = @manual_accounts.to_a + @financekit_accounts.to_a
-      items.each do |item|
-        next unless item.respond_to?(:accounts)
-        accounts.concat(item.accounts)
-      end
-      accounts = accounts.uniq { |account| account.id }
-
-      syncables = items + accounts
+      syncables = @manual_accounts.to_a
 
       Current.latest_sync_by_syncable = Sync.latest_by_syncable(syncables)
       Current.latest_completed_sync_by_syncable = Sync.latest_completed_by_syncable(syncables)
@@ -596,233 +487,5 @@ class AccountsController < ApplicationController
 
     def statement_tab_active?
       @tab == "statements"
-    end
-
-    # Builds sync stats maps for all provider types to avoid N+1 queries in views
-    def build_sync_stats_maps
-      manual_accounts_exist = @manual_accounts.any?
-
-      # SimpleFIN sync stats
-      @simplefin_sync_stats_map = {}
-      @simplefin_has_unlinked_map = {}
-      @simplefin_unlinked_count_map = {}
-      @simplefin_show_relink_map = {}
-      @simplefin_duplicate_only_map = {}
-
-      simplefin_item_ids = @simplefin_items.map(&:id)
-      simplefin_accounts_counts_by_item_id =
-        if simplefin_item_ids.any?
-          SimplefinAccount.where(simplefin_item_id: simplefin_item_ids).group(:simplefin_item_id).count
-        else
-          {}
-        end
-      simplefin_unlinked_counts_by_item_id =
-        if simplefin_item_ids.any?
-          SimplefinAccount.where(simplefin_item_id: simplefin_item_ids)
-            .left_joins(:account, :account_provider)
-            .where(accounts: { id: nil }, account_providers: { id: nil })
-            .group(:simplefin_item_id)
-            .count
-        else
-          {}
-        end
-
-      @simplefin_items.each do |item|
-        latest_sync = item.latest_sync_record
-        stats = latest_sync&.sync_stats || {}
-        @simplefin_sync_stats_map[item.id] = stats
-        @simplefin_has_unlinked_map[item.id] = manual_accounts_exist
-
-        # Count unlinked accounts
-        count = simplefin_unlinked_counts_by_item_id[item.id].to_i
-        @simplefin_unlinked_count_map[item.id] = count
-
-        # CTA visibility
-        manuals_exist = @simplefin_has_unlinked_map[item.id]
-        sfa_any = simplefin_accounts_counts_by_item_id[item.id].to_i > 0
-        @simplefin_show_relink_map[item.id] = (count.to_i == 0 && manuals_exist && sfa_any)
-
-        # Check if all errors are duplicate-skips
-        errors = Array(stats["errors"]).map { |e| e.is_a?(Hash) ? e["message"] || e[:message] : e.to_s }
-        @simplefin_duplicate_only_map[item.id] = errors.present? && errors.all? { |m| m.to_s.downcase.include?("duplicate upstream account detected") }
-      rescue => e
-        Rails.logger.warn("SimpleFin stats map build failed for item #{item.id}: #{e.class} - #{e.message}")
-        @simplefin_sync_stats_map[item.id] = {}
-        @simplefin_show_relink_map[item.id] = false
-        @simplefin_duplicate_only_map[item.id] = false
-      end
-
-      # Plaid sync stats
-      @plaid_sync_stats_map = {}
-      @plaid_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @plaid_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Lunchflow sync stats
-      @lunchflow_sync_stats_map = {}
-      @lunchflow_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @lunchflow_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Akahu sync stats
-      @akahu_sync_stats_map = {}
-      @akahu_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @akahu_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Up sync stats
-      @up_sync_stats_map = {}
-      @up_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @up_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Monobank sync stats
-      @monobank_sync_stats_map = {}
-      @monobank_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @monobank_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Enable Banking sync stats
-      @enable_banking_sync_stats_map = {}
-      @enable_banking_latest_sync_error_map = {}
-      @enable_banking_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @enable_banking_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-        @enable_banking_latest_sync_error_map[item.id] = latest_sync&.error
-      end
-
-      # TrueLayer sync stats
-      @truelayer_sync_stats_map = {}
-      @truelayer_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @truelayer_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # CoinStats sync stats
-      @coinstats_sync_stats_map = {}
-      @coinstats_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @coinstats_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Sophtron sync stats
-      @sophtron_sync_stats_map = {}
-      @sophtron_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @sophtron_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Redbark sync stats
-      @redbark_sync_stats_map = {}
-      @redbark_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @redbark_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Mercury sync stats
-      @mercury_sync_stats_map = {}
-      @mercury_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @mercury_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Brex sync stats
-      @brex_sync_stats_map = {}
-      @brex_account_counts_map = {}
-      @brex_institutions_count_map = {}
-      @brex_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @brex_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-        brex_accounts = item.brex_accounts.to_a
-        linked_count = brex_accounts.count { |brex_account| brex_account.account_provider.present? }
-        total_count = brex_accounts.count
-        @brex_account_counts_map[item.id] = {
-          linked: linked_count,
-          unlinked: total_count - linked_count,
-          total: total_count
-        }
-        @brex_institutions_count_map[item.id] = brex_accounts
-          .filter_map(&:institution_metadata)
-          .uniq { |institution| institution["name"] || institution["institution_name"] }
-          .count
-      end
-
-      # Coinbase sync stats
-      @coinbase_sync_stats_map = {}
-      @coinbase_unlinked_count_map = {}
-
-      coinbase_item_ids = @coinbase_items.map(&:id)
-      coinbase_unlinked_counts_by_item_id =
-        if coinbase_item_ids.any?
-          CoinbaseAccount.where(coinbase_item_id: coinbase_item_ids)
-            .left_joins(:account_provider)
-            .where(account_providers: { id: nil })
-            .group(:coinbase_item_id)
-            .count
-        else
-          {}
-        end
-
-      @coinbase_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @coinbase_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-
-        # Count unlinked accounts
-        @coinbase_unlinked_count_map[item.id] = coinbase_unlinked_counts_by_item_id[item.id].to_i
-      end
-
-      # IndexaCapital sync stats
-      @indexa_capital_sync_stats_map = {}
-      @indexa_capital_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @indexa_capital_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Binance sync stats
-      @binance_sync_stats_map = {}
-      @binance_unlinked_count_map = {}
-      @binance_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @binance_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-
-        # Count unlinked accounts
-        count = item.binance_accounts
-          .left_joins(:account_provider)
-          .where(account_providers: { id: nil })
-          .count
-        @binance_unlinked_count_map[item.id] = count
-      end
-
-      # Questrade sync stats and account counts
-      @questrade_sync_stats_map = {}
-      @questrade_account_counts_map = {}
-      @questrade_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @questrade_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-        accounts = item.questrade_accounts.to_a
-        linked = accounts.count { |a| a.account_provider.present? }
-        @questrade_account_counts_map[item.id] = {
-          linked: linked, unlinked: accounts.size - linked, total: accounts.size
-        }
-      end
-
-      # Wise sync stats
-      @wise_sync_stats_map = {}
-      @wise_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @wise_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
-
-      # Fio sync stats
-      @fio_sync_stats_map = {}
-      @fio_items.each do |item|
-        latest_sync = item.latest_sync_record
-        @fio_sync_stats_map[item.id] = latest_sync&.sync_stats || {}
-      end
     end
 end

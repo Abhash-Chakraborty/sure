@@ -6,22 +6,8 @@ class IdentifyRecurringTransactionsJobTest < ActiveJob::TestCase
     @scheduled_at = Time.current.to_f
   end
 
-  test "skips identification while a Coinbase provider sync is in flight" do
-    coinbase_item = @family.coinbase_items.create!(
-      name: "Coinbase Pro",
-      api_key: "test-api-key-#{SecureRandom.hex(4)}",
-      api_secret: "test-api-secret-#{SecureRandom.hex(8)}"
-    )
-    Sync.create!(syncable: coinbase_item, status: :syncing)
-
-    RecurringTransaction::Identifier.any_instance.expects(:identify_recurring_patterns).never
-
-    IdentifyRecurringTransactionsJob.new.perform(@family.id, @scheduled_at)
-  end
-
-  test "skips identification while a Mercury provider sync is in flight" do
-    mercury_item = mercury_items(:one)
-    Sync.create!(syncable: mercury_item, status: :pending)
+  test "skips identification while an account sync is in flight" do
+    Sync.create!(syncable: accounts(:depository), status: :syncing)
 
     RecurringTransaction::Identifier.any_instance.expects(:identify_recurring_patterns).never
 

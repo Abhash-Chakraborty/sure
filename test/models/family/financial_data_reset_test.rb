@@ -10,7 +10,6 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
       color: "#12B76A",
       lucide_icon: "tag"
     )
-    Provider::Registry.stubs(:plaid_provider_for_region).returns(nil)
   end
 
   test "dry run reports target counts and deletes nothing" do
@@ -27,7 +26,6 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
   test "provider item associations are limited to explicit syncable family associations" do
     associations = Family::FinancialDataReset.provider_item_associations
 
-    assert_not_empty associations
     assert_equal associations, Family::FinancialDataReset::PROVIDER_ITEM_ASSOCIATIONS
     assert associations.all? { |name| name.to_s.end_with?("_items") }
 
@@ -42,10 +40,8 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
 
   test "sync counts use the family sync scope without double counting" do
     account = @family.accounts.first
-    provider_item = @family.plaid_items.first
     @family.syncs.create!
     account.syncs.create!
-    provider_item.syncs.create!
 
     result = Family::FinancialDataReset.new(user: @user).call
 
@@ -111,43 +107,6 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
     assert User.exists?(@user.id)
     assert_equal @family.id, User.find(@user.id).family_id
     assert Category.exists?(@other_category.id)
-  end
-
-  test "destructive reset revokes provider item and clears provider account attachments" do
-    account = @other_family.accounts.create!(
-      name: "Provider Reset Checking",
-      balance: 100,
-      currency: "USD",
-      accountable: Depository.new
-    )
-    plaid_item = @other_family.plaid_items.create!(
-      name: "Provider Reset Bank",
-      plaid_id: "provider_reset_item",
-      access_token: "provider_reset_access_token",
-      plaid_region: "us"
-    )
-    plaid_account = plaid_item.plaid_accounts.create!(
-      plaid_id: "provider_reset_account",
-      plaid_type: "depository",
-      current_balance: 100,
-      currency: "USD",
-      name: "Provider Reset Account"
-    )
-    account_provider = AccountProvider.create!(account: account, provider: plaid_account)
-    plaid_item.logo.attach(io: StringIO.new("logo"), filename: "logo.png", content_type: "image/png")
-    attachment = plaid_item.logo.attachment
-
-    plaid_provider = mock
-    Provider::Registry.stubs(:plaid_provider_for_region).returns(plaid_provider)
-    plaid_provider.expects(:remove_item).with(plaid_item.access_token).once
-
-    result = Family::FinancialDataReset.new(family: @other_family, dry_run: false, confirmed: true).call
-
-    assert_equal 0, result.after_counts.values.sum
-    assert_not PlaidItem.exists?(plaid_item.id)
-    assert_not PlaidAccount.exists?(plaid_account.id)
-    assert_not AccountProvider.exists?(account_provider.id)
-    assert_not ActiveStorage::Attachment.exists?(attachment.id)
   end
 
   test "destructive reset is idempotent" do
@@ -279,24 +238,8 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
       family_export = family.family_exports.create!(status: "completed")
       family_export.export_file.attach(io: StringIO.new("zip"), filename: "#{safe_label}.zip", content_type: "application/zip")
       account_statement = create_account_statement!(family: family, account: account, label: label)
-      plaid_item = family.plaid_items.create!(
-        name: "#{label} Plaid Item",
-        plaid_id: "plaid_item_#{safe_label}_#{family.id.delete("-")}",
-        access_token: "access_#{safe_label}_#{family.id.delete("-")}",
-        plaid_region: "us"
-      )
-      plaid_account = plaid_item.plaid_accounts.create!(
-        plaid_id: "plaid_account_#{safe_label}",
-        plaid_type: "depository",
-        current_balance: 100,
-        currency: family.currency,
-        name: "#{label} Plaid Account"
-      )
-      account_provider = AccountProvider.create!(account: account, provider: plaid_account)
-      plaid_item.logo.attach(io: StringIO.new("logo"), filename: "#{safe_label}.png", content_type: "image/png")
       family_sync = family.syncs.create!
       account_sync = account.syncs.create!
-      provider_sync = plaid_item.syncs.create!
 
       {
         account: account,
@@ -329,12 +272,8 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
         import_mapping: import_mapping,
         family_export: family_export,
         account_statement: account_statement,
-        plaid_item: plaid_item,
-        plaid_account: plaid_account,
-        account_provider: account_provider,
         family_sync: family_sync,
-        account_sync: account_sync,
-        provider_sync: provider_sync
+        account_sync: account_sync
       }
     end
 
@@ -400,8 +339,7 @@ class Family::FinancialDataResetTest < ActiveSupport::TestCase
         attachments: [
           attachment_snapshot(records[:transaction], "attachments"),
           attachment_snapshot(records[:family_export], "export_file"),
-          attachment_snapshot(records[:account_statement], "original_file"),
-          attachment_snapshot(records[:plaid_item], "logo")
+          attachment_snapshot(records[:account_statement], "original_file")
         ]
       )
     end

@@ -16,10 +16,13 @@ class MarketDataImporterTest < ActiveSupport::TestCase
     Security.delete_all
 
     @provider = mock("provider")
-    Provider::Registry.any_instance
-                      .stubs(:get_provider)
-                      .with(:twelve_data)
-                      .returns(@provider)
+    # The default exchange-rate and securities providers.
+    %i[frankfurter yahoo_finance].each do |name|
+      Provider::Registry.any_instance
+                        .stubs(:get_provider)
+                        .with(name)
+                        .returns(@provider)
+    end
   end
 
   test "syncs required exchange rates" do

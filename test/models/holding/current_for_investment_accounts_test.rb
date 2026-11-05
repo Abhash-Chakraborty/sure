@@ -12,9 +12,7 @@ class Holding::CurrentForInvestmentAccountsTest < ActiveSupport::TestCase
   end
 
   test "returns the latest provider import day while preserving per-security price dates" do
-    coinstats_item = @family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Brokerage", currency: "USD")
-    account_provider = AccountProvider.create!(account: @account, provider: coinstats_account)
+    account_provider = link_provider!(@account)
 
     current_holding = create_holding("AAPL", date: Date.current, account_provider: account_provider)
     stale_holding = create_holding("STALE", date: 1.day.ago.to_date, account_provider: account_provider)
@@ -40,15 +38,8 @@ class Holding::CurrentForInvestmentAccountsTest < ActiveSupport::TestCase
       currency: "USD",
       accountable: Investment.new
     )
-    coinstats_item = @family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    first_provider = AccountProvider.create!(
-      account: @account,
-      provider: coinstats_item.coinstats_accounts.create!(name: "First", currency: "USD")
-    )
-    second_provider = AccountProvider.create!(
-      account: other_account,
-      provider: coinstats_item.coinstats_accounts.create!(name: "Second", currency: "USD")
-    )
+    first_provider = link_provider!(@account)
+    second_provider = link_provider!(other_account)
 
     current_first = create_holding("AAPL", date: Date.current, account_provider: first_provider)
     stale_first = create_holding("STALE", date: 1.day.ago.to_date, account_provider: first_provider)
@@ -68,9 +59,7 @@ class Holding::CurrentForInvestmentAccountsTest < ActiveSupport::TestCase
   end
 
   test "selects provider and manual holdings independently when queried together" do
-    coinstats_item = @family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Brokerage", currency: "USD")
-    account_provider = AccountProvider.create!(account: @account, provider: coinstats_account)
+    account_provider = link_provider!(@account)
     provider_holding = create_holding("AAPL", date: Date.current, account_provider: account_provider)
 
     manual_account = create_manual_account
@@ -99,11 +88,7 @@ class Holding::CurrentForInvestmentAccountsTest < ActiveSupport::TestCase
   end
 
   test "a linked account's calculated rows neither move nor join its latest provider day" do
-    coinstats_item = @family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    account_provider = AccountProvider.create!(
-      account: @account,
-      provider: coinstats_item.coinstats_accounts.create!(name: "Brokerage", currency: "USD")
-    )
+    account_provider = link_provider!(@account)
 
     provider_holding = create_holding("AAPL", date: 1.day.ago.to_date, account_provider: account_provider)
     provider_holding.update_columns(updated_at: 1.day.ago)
@@ -148,5 +133,13 @@ class Holding::CurrentForInvestmentAccountsTest < ActiveSupport::TestCase
         currency: currency,
         account_provider: account_provider
       )
+    end
+
+    # No provider account model is installed, so the link is a bare
+    # account_providers row (skipping the polymorphic presence validation).
+    # The code under test only reads holdings' account_provider_id.
+    def link_provider!(account)
+      AccountProvider.new(account: account, provider_type: "TestProviderAccount", provider_id: SecureRandom.uuid)
+        .tap { |link| link.save!(validate: false) }
     end
 end

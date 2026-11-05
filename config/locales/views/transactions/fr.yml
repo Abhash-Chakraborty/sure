@@ -311,7 +311,6 @@ fr:
       delete: Supprimer
       delete_subtitle: Cette action supprime définitivement la transaction, affecte vos soldes historiques et ne peut pas être annulée.
       delete_title: Supprimer la transaction
-      description: Descriptif
       details: Détails
       exclude: Exclure
       exclude_description: Les transactions exclues seront retirées des calculs budgétaires et des rapports.
@@ -320,7 +319,6 @@ fr:
       mark_recurring: Marquer comme récurrente
       mark_recurring_subtitle: Suivez cela comme une transaction récurrente. L'écart de montant est automatiquement calculé à partir des 6 derniers mois de transactions similaires.
       mark_recurring_title: Transaction récurrente
-      memo: Mémo
       merchant_label: Marchand
       merge_duplicate: Oui, fusionnez-les
       name_label: Nom
@@ -331,37 +329,16 @@ fr:
       one_time_description: Les transactions ponctuelles seront exclues de certains calculs budgétaires et rapports afin de vous aider à voir ce qui compte vraiment.
       one_time_title: Transaction ponctuelle (%{type})
       open_matcher: Ouvrir le matcheur
-      original_description: Libellé d'origine
       overview: Aperçu
-      payee: Bénéficiaire
-      payment_channel: Canal de paiement
       pending_duplicate_merger_button: Ouvrir la fusion
       pending_duplicate_merger_description: Fusionnez manuellement cette transaction en attente avec sa version validée.
       pending_duplicate_merger_title: Doublon d'une transaction validée ?
-      plaid_counterparty_label: Contrepartie %{index}
-      plaid_payment_meta_label: Métadonnées de paiement · %{name}
       potential_duplicate_description: Cette transaction en attente peut être la même que la transaction validée ci-dessous. Si tel est le cas, fusionnez-les pour éviter un double comptage.
       potential_duplicate_title: Doublon possible détecté
-      provider_extra_fields:
-        by_order_of: Sur ordre de
-        confidence_level: Niveau de confiance
-        entity_id: ID de l'entité
-        logo_url: URL du logo
-        name: Nom
-        payee: Bénéficiaire
-        payer: Payeur
-        phone_number: Numéro de téléphone
-        ppd_id: ID PPD
-        reason: Motif
-        reference_number: Numéro de référence
-        type: Type
-        website: Site web
-      provider_extras: Suppléments du fournisseur
       settings: Paramètres
       tab_transactions: Transactions
       tab_upcoming: À venir
       tags_label: Étiquettes
-      transaction_code: Code de transaction
       transfer: Transfert
       transfer_matcher_description: Connectez cette transaction à sa contrepartie dans un autre compte.
       transfer_or_debt_payment: Transfert ou paiement de la dette ?

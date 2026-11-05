@@ -98,10 +98,6 @@ es:
       tab_upcoming: Próximas
       uncategorized: (sin categorizar)
       additional_details: Detalles adicionales
-      payee: Beneficiario
-      description: Descripción
-      memo: Concepto
-      provider_extras: Extras del proveedor
       transfer_or_debt_payment: ¿Transferencia o pago de deuda?
       open_matcher: Abrir emparejador
       convert: Convertir

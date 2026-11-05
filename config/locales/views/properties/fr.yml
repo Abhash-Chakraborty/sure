@@ -14,10 +14,6 @@ fr:
       state_region_label: État/Région
       state_region_placeholder: CA
       title: Saisir la propriété manuellement
-    avm_providers:
-      chimnie: Chimnie
-      realie: Realie
-      rentcast: RentCast
     balances:
       market_value_label: Valeur marchande estimée
       market_value_tooltip: La valeur marchande estimée de votre propriété. Ce numéro
@@ -56,7 +52,6 @@ fr:
       linked: Lié à %{provider} ; la valeur du bien a été mise à jour.
       not_linkable: Ce bien ne peut pas être lié à ce fournisseur. Vérifiez que son adresse est complète et située dans un pays pris en charge, et que la devise du compte correspond à celle du fournisseur.
     new:
-      avm_attribution_chimnie: Données d'estimation fournies par Chimnie. Contient des données OS © Crown copyright and database right, des données Royal Mail © Royal Mail copyright and database right et des données HM Land Registry © Crown copyright and database right, sous licence Open Government Licence v3.0.
       avm_confidence:
         high: Élevée
         low: Faible

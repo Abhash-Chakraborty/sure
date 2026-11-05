@@ -12,15 +12,13 @@ class FilterParameterLoggingTest < ActiveSupport::TestCase
       code: "123456",
       linking_code: "abc",
       invite_code: "deadbeef",
-      user: { invite_code: "deadbeef" },
-      simplefin_item: { access_url: "https://user:secret@bridge.example/simplefin" }
+      user: { invite_code: "deadbeef" }
     )
 
     assert_equal "[FILTERED]", filtered[:code]
     assert_equal "[FILTERED]", filtered[:linking_code]
     assert_equal "[FILTERED]", filtered[:invite_code]
     assert_equal "[FILTERED]", filtered.dig(:user, :invite_code)
-    assert_equal "[FILTERED]", filtered.dig(:simplefin_item, :access_url)
   end
 
   test "keeps descriptive codes readable" do

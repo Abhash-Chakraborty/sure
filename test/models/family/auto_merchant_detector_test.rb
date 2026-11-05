@@ -162,7 +162,7 @@ class Family::AutoMerchantDetectorTest < ActiveSupport::TestCase
   end
 
   test "still reuses an existing shared provider merchant by website" do
-    known = ProviderMerchant.create!(name: "Known Co", source: "plaid", website_url: "known.example")
+    known = ProviderMerchant.create!(name: "Known Co", source: "synth", website_url: "known.example")
     txn = create_transaction(account: @account, name: "Known Co purchase").transaction
 
     provider_response = provider_success_response([
@@ -179,7 +179,7 @@ class Family::AutoMerchantDetectorTest < ActiveSupport::TestCase
 
   test "enhancing a provider merchant keeps its provider-supplied logo" do
     provider_logo = "https://plaid-merchant-logos.plaid.com/coffee_shop.png"
-    merchant = ProviderMerchant.create!(source: "plaid", name: "Coffee Shop", logo_url: provider_logo)
+    merchant = ProviderMerchant.create!(source: "synth", name: "Coffee Shop", logo_url: provider_logo)
     txn = create_transaction(account: @account, name: "COFFEE SHOP 123", merchant: merchant).transaction
 
     provider_response = provider_success_response([
@@ -196,7 +196,7 @@ class Family::AutoMerchantDetectorTest < ActiveSupport::TestCase
   end
 
   test "enhancing a provider merchant without a logo builds the logo from the website's domain" do
-    merchant = ProviderMerchant.create!(source: "plaid", name: "Book Store")
+    merchant = ProviderMerchant.create!(source: "synth", name: "Book Store")
     txn = create_transaction(account: @account, name: "BOOK STORE 42", merchant: merchant).transaction
 
     provider_response = provider_success_response([

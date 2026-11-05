@@ -76,36 +76,36 @@ class Security::ResolverTest < ActiveSupport::TestCase
     db_security = Security.create!(ticker: "CSPX", exchange_operating_mic: "XLON", country_code: "GB")
 
     Security.expects(:search_provider).never
-    Setting.stubs(:enabled_securities_providers).returns([ "tiingo" ])
+    Setting.stubs(:enabled_securities_providers).returns([ "mfapi" ])
 
     resolved = Security::Resolver.new(
       "CSPX",
       exchange_operating_mic: "XLON",
       country_code: "GB",
-      price_provider: "tiingo"
+      price_provider: "mfapi"
     ).resolve
 
     assert_equal db_security, resolved
-    assert_equal "tiingo", resolved.reload.price_provider
+    assert_equal "mfapi", resolved.reload.price_provider
   end
 
   test "persists price_provider on provider match" do
-    match = Security.new(ticker: "VWCE", exchange_operating_mic: "XETR", country_code: "DE", price_provider: "eodhd")
+    match = Security.new(ticker: "VWCE", exchange_operating_mic: "XETR", country_code: "DE", price_provider: "yahoo_finance")
 
     Security.expects(:search_provider)
             .with("VWCE", exchange_operating_mic: "XETR", technical_failure: anything)
             .returns([ match ])
 
-    Setting.stubs(:enabled_securities_providers).returns([ "eodhd" ])
+    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance" ])
 
     resolved = Security::Resolver.new(
       "VWCE",
       exchange_operating_mic: "XETR",
-      price_provider: "eodhd"
+      price_provider: "yahoo_finance"
     ).resolve
 
     assert resolved.persisted?
-    assert_equal "eodhd", resolved.price_provider
+    assert_equal "yahoo_finance", resolved.price_provider
   end
 
   test "rejects unknown price_provider" do
@@ -198,14 +198,14 @@ class Security::ResolverTest < ActiveSupport::TestCase
     # ticker+MIC record via find_or_create_provider_match! and must not
     # clobber its existing name.
     db_security = Security.create!(ticker: "CSPX3", exchange_operating_mic: "XLON", country_code: "US", name: "Custom Name")
-    match = Security.new(ticker: "CSPX3", exchange_operating_mic: "XLON", country_code: "GB", name: "iShares Core S&P 500", price_provider: "tiingo")
+    match = Security.new(ticker: "CSPX3", exchange_operating_mic: "XLON", country_code: "GB", name: "iShares Core S&P 500", price_provider: "mfapi")
 
     Security.expects(:search_provider)
             .with("CSPX3", exchange_operating_mic: "XLON", country_code: "GB", technical_failure: anything)
             .returns([ match ])
-    Setting.stubs(:enabled_securities_providers).returns([ "tiingo" ])
+    Setting.stubs(:enabled_securities_providers).returns([ "mfapi" ])
 
-    resolved = Security::Resolver.new("CSPX3", exchange_operating_mic: "XLON", country_code: "GB", price_provider: "tiingo").resolve
+    resolved = Security::Resolver.new("CSPX3", exchange_operating_mic: "XLON", country_code: "GB", price_provider: "mfapi").resolve
 
     assert_equal db_security, resolved
     assert_equal "Custom Name", resolved.reload.name
@@ -242,21 +242,21 @@ class Security::ResolverTest < ActiveSupport::TestCase
       ticker: "DIS2",
       exchange_operating_mic: "XNYS",
       country_code: "US",
-      price_provider: "twelve_data",
+      price_provider: "yahoo_finance",
       offline: true,
       offline_reason: nil, # e.g. left blank by an old offline_security fallback, or health_check_failed
       failed_fetch_count: 3
     )
 
     Security.expects(:search_provider).never
-    Setting.stubs(:enabled_securities_providers).returns([ "twelve_data" ])
-    Security.stubs(:provider_for).with("twelve_data").returns(mock("twelve_data_provider"))
+    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance" ])
+    Security.stubs(:provider_for).with("yahoo_finance").returns(mock("yahoo_finance_provider"))
 
     resolved = Security::Resolver.new(
       "DIS2",
       exchange_operating_mic: "XNYS",
       country_code: "US",
-      price_provider: "twelve_data"
+      price_provider: "yahoo_finance"
     ).resolve
 
     assert_equal db_security, resolved
@@ -271,15 +271,15 @@ class Security::ResolverTest < ActiveSupport::TestCase
       ticker: "DIS3",
       exchange_operating_mic: "XNYS",
       country_code: "US",
-      price_provider: "twelve_data",
+      price_provider: "yahoo_finance",
       offline: true,
       offline_reason: "health_check_failed",
       failed_fetch_count: 6
     )
 
     Security.expects(:search_provider).never
-    Setting.stubs(:enabled_securities_providers).returns([ "twelve_data" ])
-    Security.stubs(:provider_for).with("twelve_data").returns(mock("twelve_data_provider"))
+    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance" ])
+    Security.stubs(:provider_for).with("yahoo_finance").returns(mock("yahoo_finance_provider"))
 
     resolved = Security::Resolver.new(
       "DIS3",
@@ -376,13 +376,13 @@ class Security::ResolverTest < ActiveSupport::TestCase
     db_security = Security.create!(ticker: "GOOG2", exchange_operating_mic: "XNAS", country_code: "US")
 
     Security.expects(:search_provider).never
-    Setting.stubs(:enabled_securities_providers).returns([ "twelve_data" ])
+    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance" ])
 
     resolved = Security::Resolver.new(
       "GOOG2",
       exchange_operating_mic: "XNAS",
       country_code: "US",
-      price_provider: "tiingo"
+      price_provider: "mfapi"
     ).resolve
 
     assert_equal db_security, resolved
@@ -402,20 +402,20 @@ class Security::ResolverTest < ActiveSupport::TestCase
   end
 
   test "WAR and XWAR resolve to the same security without creating a duplicate" do
-    match = Security.new(ticker: "KTY", exchange_operating_mic: "XWAR", country_code: "PL", price_provider: "eodhd")
+    match = Security.new(ticker: "KTY", exchange_operating_mic: "XWAR", country_code: "PL", price_provider: "yahoo_finance")
 
     Security.expects(:search_provider)
             .with("KTY", exchange_operating_mic: "XWAR", country_code: "PL", technical_failure: anything)
             .returns([ match ])
 
-    Setting.stubs(:enabled_securities_providers).returns([ "eodhd" ])
+    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance" ])
 
     assert_difference "Security.count", 1 do
       resolved = Security::Resolver.new(
         "KTY",
         exchange_operating_mic: "WAR",
         country_code: "PL",
-        price_provider: "eodhd"
+        price_provider: "yahoo_finance"
       ).resolve
 
       assert_equal "XWAR", resolved.exchange_operating_mic
@@ -428,7 +428,7 @@ class Security::ResolverTest < ActiveSupport::TestCase
         "KTY",
         exchange_operating_mic: "XWAR",
         country_code: "PL",
-        price_provider: "eodhd"
+        price_provider: "yahoo_finance"
       ).resolve
 
       assert_equal "XWAR", again.exchange_operating_mic

@@ -98,10 +98,6 @@ zh-TW:
       tab_upcoming: 即將發生
       uncategorized: （未分類）
       additional_details: 額外詳細資訊
-      payee: 收款人
-      description: 描述
-      memo: 備註
-      provider_extras: 供應商額外資訊
       transfer_or_debt_payment: 轉帳或債務還款？
       open_matcher: 開啟配對工具
       convert: 轉換

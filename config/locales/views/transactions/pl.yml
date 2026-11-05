@@ -325,7 +325,6 @@ pl:
       delete_subtitle: To trwale usuwa transakcję, wpływa na historyczne salda i nie
         może zostać cofnięte.
       delete_title: Usuń transakcję
-      description: Opis
       details: Szczegóły
       exclude: Wyklucz
       exclude_description: Wykluczone transakcje zostaną usunięte z obliczeń budżetowych
@@ -336,7 +335,6 @@ pl:
       mark_recurring_subtitle: Śledź to jako transakcję cykliczną. Odchylenie kwoty
         jest obliczane automatycznie na podstawie ostatnich 6 miesięcy podobnych transakcji.
       mark_recurring_title: Transakcja cykliczna
-      memo: Adnotacja
       merchant_label: Kontrahent
       merge_duplicate: Tak, scal je
       name_label: Nazwa
@@ -349,7 +347,6 @@ pl:
       one_time_title: Jednorazowe %{type}
       open_matcher: Otwórz dopasowywanie
       overview: Przegląd
-      payee: Odbiorca
       pending_duplicate_merger_button: Otwórz łączenie
       pending_duplicate_merger_description: Ręcznie połącz tę oczekującą transakcję
         z jej zaksięgowaną wersją.
@@ -358,7 +355,6 @@ pl:
         zaksięgowana transakcja poniżej. Jeśli tak, scal je, aby uniknąć podwójnego
         liczenia.
       potential_duplicate_title: Wykryto możliwy duplikat
-      provider_extras: Dodatkowe dane dostawcy
       settings: Ustawienia
       tab_transactions: Transakcje
       tab_upcoming: Nadchodzące

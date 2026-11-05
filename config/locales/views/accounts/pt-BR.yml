@@ -2,7 +2,6 @@
 pt-BR:
   accounts:
     account:
-      link_lunchflow: Vincular ao Lunch Flow
       link_provider: Vincular ao provedor
       unlink_provider: Desvincular do provedor
       troubleshoot: Solucionar problemas
@@ -35,7 +34,6 @@ pt-BR:
         connected_entry: Vincular conta
         connected_entry_eu: Vincular conta EU
         link_with_provider: "Vincular com %{provider}"
-        lunchflow_entry: Vincular conta do Lunch Flow
         manual_entry: Inserir saldo da conta
         title: Como você gostaria de adicionar?
       title: O que você gostaria de adicionar?

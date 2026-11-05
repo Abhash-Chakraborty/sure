@@ -35,11 +35,6 @@ pl:
       name: Nazwa
       new_holding: Nowa aktywność
       no_holdings: Brak pozycji do wyświetlenia.
-      positions:
-        few: "%{count} pozycje"
-        many: "%{count} pozycji"
-        one: "%{count} pozycja"
-        other: "%{count} pozycji"
       return: Łączny zwrot
       weight: Udział
     missing_price_tooltip:

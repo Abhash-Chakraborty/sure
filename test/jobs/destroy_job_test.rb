@@ -17,16 +17,6 @@ class DestroyJobTest < ActiveJob::TestCase
     DestroyJob.perform_now(model)
   end
 
-  test "a provider item's failed destroy still resets scheduled_for_deletion" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    item.stubs(:destroy).raises(StandardError, "destroy failed")
-
-    DestroyJob.perform_now(item)
-
-    assert_not item.reload.scheduled_for_deletion?
-  end
-
   test "an account whose destroy raises is left disabled, not pending_deletion" do
     account = accounts(:depository)
     account.mark_for_deletion!
@@ -71,42 +61,12 @@ class DestroyJobTest < ActiveJob::TestCase
   end
 
   test "a failed destroy is also sent to the Rails log and Sentry" do
-    item = plaid_items(:one)
-    item.stubs(:destroy).raises(StandardError, "destroy failed")
-    Rails.logger.expects(:error).with(regexp_matches(/DestroyJob failed for PlaidItem #{item.id}: StandardError: destroy failed/)).once
+    family = families(:dylan_family)
+    family.stubs(:destroy).raises(StandardError, "destroy failed")
+    Rails.logger.expects(:error).with(regexp_matches(/DestroyJob failed for Family #{family.id}: StandardError: destroy failed/)).once
     Sentry.expects(:capture_exception).with(instance_of(StandardError)).once
 
-    DestroyJob.perform_now(item)
-  end
-
-  # QuestradeItem only requires a refresh token while not scheduled for
-  # deletion, so a reset that re-ran validations would raise RecordInvalid out
-  # of the rescue and leave the job retrying with the flag still set.
-  test "resets the flag without re-running validations that depend on it" do
-    item = questrade_items(:one)
-    item.update_columns(scheduled_for_deletion: true, refresh_token: nil)
-    item.stubs(:destroy).raises(StandardError, "destroy failed")
-
-    assert_nothing_raised { DestroyJob.perform_now(item) }
-
-    assert_not item.reload.scheduled_for_deletion?
-  end
-
-  test "a failed provider item destroy is recorded in the debug log with its family" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    item.stubs(:destroy).raises(StandardError, "destroy failed")
-
-    assert_difference -> { DebugLogEntry.where(family: item.family, source: "DestroyJob").count }, 1 do
-      DestroyJob.perform_now(item)
-    end
-
-    entry = DebugLogEntry.recent.first
-    assert_nil entry.account
-    assert_equal "plaid", entry.provider_key
-    assert_equal "PlaidItem", entry.metadata["record_type"]
-    assert_equal item.id, entry.metadata["record_id"]
-    assert_not item.reload.scheduled_for_deletion?
+    DestroyJob.perform_now(family)
   end
 
   test "a failed family destroy is recorded against that family" do
@@ -138,30 +98,15 @@ class DestroyJobTest < ActiveJob::TestCase
   end
 
   test "a destroy that a callback aborts is recorded and resets the flag" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    item.stubs(:destroy).returns(false)
+    model = OpenStruct.new(scheduled_for_deletion: true)
+    model.stubs(:destroy).returns(false)
+    model.expects(:update_column).with(:scheduled_for_deletion, false).once
 
     assert_difference -> { DebugLogEntry.where(source: "DestroyJob").count }, 1 do
-      DestroyJob.perform_now(item)
+      DestroyJob.perform_now(model)
     end
 
     assert_equal "ActiveRecord::RecordNotDestroyed", DebugLogEntry.recent.first.metadata["error_class"]
-    assert_not item.reload.scheduled_for_deletion?
-  end
-
-  test "a deadlock is retried instead of failing the deletion" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    item.stubs(:destroy).raises(ActiveRecord::Deadlocked, "deadlock detected")
-
-    assert_no_difference -> { DebugLogEntry.count } do
-      assert_enqueued_with(job: DestroyJob, args: [ item ]) do
-        DestroyJob.perform_now(item)
-      end
-    end
-
-    assert item.reload.scheduled_for_deletion?
   end
 
   test "an account whose destroy deadlocks once is deleted on the retry" do
@@ -172,19 +117,6 @@ class DestroyJobTest < ActiveJob::TestCase
     assert_difference "Account.count", -1 do
       perform_enqueued_jobs { DestroyJob.perform_later(account) }
     end
-  end
-
-  test "a deadlock that outlasts the retries is recorded and resets the flag" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    PlaidItem.any_instance.stubs(:destroy).raises(ActiveRecord::Deadlocked, "deadlock detected")
-
-    assert_difference -> { DebugLogEntry.where(source: "DestroyJob").count }, 1 do
-      perform_enqueued_jobs { DestroyJob.perform_later(item) }
-    end
-
-    assert_equal "ActiveRecord::Deadlocked", DebugLogEntry.recent.first.metadata["error_class"]
-    assert_not item.reload.scheduled_for_deletion?
   end
 
   test "an account stays pending_deletion while a deadlock is retried" do
@@ -259,13 +191,12 @@ class DestroyJobTest < ActiveJob::TestCase
   end
 
   test "a reset that the database rejects is recorded and does not raise out of the job" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    item.stubs(:destroy).raises(StandardError, "destroy failed")
-    item.stubs(:update_column).raises(ActiveRecord::RecordNotUnique, "duplicate key")
+    model = OpenStruct.new(scheduled_for_deletion: true)
+    model.stubs(:destroy).raises(StandardError, "destroy failed")
+    model.stubs(:update_column).raises(ActiveRecord::RecordNotUnique, "duplicate key")
 
     assert_difference -> { DebugLogEntry.where(source: "DestroyJob").count }, 2 do
-      assert_nothing_raised { DestroyJob.perform_now(item) }
+      assert_nothing_raised { DestroyJob.perform_now(model) }
     end
 
     assert_equal %w[StandardError ActiveRecord::RecordNotUnique].sort,
@@ -273,14 +204,12 @@ class DestroyJobTest < ActiveJob::TestCase
   end
 
   test "the flag is reset even when recording the failure raises" do
-    item = plaid_items(:one)
-    item.update_column(:scheduled_for_deletion, true)
-    item.stubs(:destroy).raises(StandardError, "destroy failed")
+    model = OpenStruct.new(scheduled_for_deletion: true)
+    model.stubs(:destroy).raises(StandardError, "destroy failed")
+    model.expects(:update_column).with(:scheduled_for_deletion, false).once
     DebugLogEntry.stubs(:capture).raises(StandardError, "log write failed")
 
-    assert_raises(StandardError) { DestroyJob.perform_now(item) }
-
-    assert_not item.reload.scheduled_for_deletion?
+    assert_raises(StandardError) { DestroyJob.perform_now(model) }
   end
 
   test "a deadlock after the account delete committed is recorded instead of retried" do

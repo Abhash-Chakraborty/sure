@@ -267,7 +267,7 @@ module Family::AutoTransferMatchable
     # moved, so an unrelated pair of round-number transactions can land inside the tolerance
     # band purely by chance. When :restrict_cross_currency_to_linked_accounts is true, that
     # branch additionally requires both accounts to have a live provider connection
-    # (Plaid/SimpleFIN/account_providers). Manual accounts always participate in the first
+    # (account_providers). Manual accounts always participate in the first
     # branch's exact-amount, same-currency matching, which carries no such ambiguity.
     # A user-confirmed transfer between the same two accounts, in the same direction,
     # is the exception: it shows money really moves along that route (e.g. a manual
@@ -446,8 +446,6 @@ module Family::AutoTransferMatchable
     def linked_account_sql(accounts_alias)
       <<~SQL.squish
         (
-          #{accounts_alias}.plaid_account_id IS NOT NULL OR
-          #{accounts_alias}.simplefin_account_id IS NOT NULL OR
           EXISTS (SELECT 1 FROM account_providers WHERE account_providers.account_id = #{accounts_alias}.id)
         )
       SQL

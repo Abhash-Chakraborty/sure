@@ -620,8 +620,6 @@ class InvestmentStatementTest < ActiveSupport::TestCase
     # income with amount 0 until the processor is fixed; the 62.5 below
     # deliberately excludes it.
     create_plaid_dividend_trade(account: account, date: period.start_date)
-    # Pending income is not counted until it posts
-    create_labelled_transaction(account: account, label: "Dividend", amount: -99, date: period.start_date, extra: { "plaid" => { "pending" => true } })
     # A labelled transaction outside the period is not counted
     create_income_transaction(account: account, label: "Dividend", amount: 999, date: period.start_date - 1.day, extra_shape: :flat)
 

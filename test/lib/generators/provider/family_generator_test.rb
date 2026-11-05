@@ -34,29 +34,6 @@ class Provider::FamilyGeneratorTest < ActiveSupport::TestCase
     assert_parses ActionView::Template::Handlers::ERB::Erubi.new(generated).src
   end
 
-  # Renders a generated view the way Rails would, from a real view path, so relative
-  # translation keys and strict locals behave as they do in the app. Redbark has the
-  # model, routes, fixtures and translations the generated views call, so it stands
-  # in for a new provider here. The view sits at the app's own path, prepended so it
-  # renders instead of Redbark's: under any other prefix its relative keys would
-  # resolve in a scope the app does not have.
-  def render_generated_view(generated, partial: nil, template: nil, **options)
-    Dir.mktmpdir do |dir|
-      virtual_path = partial ? partial.sub(%r{([^/]+)\z}, '_\\1') : template
-      file = File.join(dir, "#{virtual_path}.html.erb")
-      FileUtils.mkdir_p(File.dirname(file))
-      File.write(file, generated)
-
-      controller = Class.new(ApplicationController) { prepend_view_path dir }
-      target = partial ? { partial: partial } : { template: template, layout: false }
-      html = controller.renderer.render(**target, **options)
-      # Missing keys render a placeholder rather than raising in test, so a key
-      # the app does not define would otherwise pass unnoticed.
-      assert_not_includes html, "translation_missing"
-      html
-    end
-  end
-
   test "the unlinking scaffold renders to valid Ruby and carries the disposition seam" do
     rendered = render_template("unlinking_concern.rb.tt", class_name: "Gocardless", file_name: "gocardless")
 
@@ -269,16 +246,6 @@ class Provider::FamilyGeneratorTest < ActiveSupport::TestCase
     end
   end
 
-  # Bank sync builds its connection rows and drawers from FAMILY_PANELS, so a
-  # section injected into show.html.erb would render outside both.
-  test "adds the provider to the family panels of the real providers controller" do
-    source = Rails.root.join("app/controllers/settings/providers_controller.rb").read
-    result = Provider::FamilyGenerator.append_family_panel_entry(source, key: "gocardless", title: "Gocardless")
-
-    assert_parses result
-    assert_includes result, %(      { key: "gocardless", title: "Gocardless", turbo_id: "gocardless", partial: "gocardless_panel" }\n    ].freeze)
-  end
-
   test "separates the new family panel from the previous last entry" do
     result = Provider::FamilyGenerator.append_family_panel_entry(<<~RUBY, key: "gocardless", title: "Gocardless")
       FAMILY_PANELS = [
@@ -307,24 +274,6 @@ class Provider::FamilyGeneratorTest < ActiveSupport::TestCase
 
   test "returns nil when there is no provider_summary to update" do
     assert_nil Provider::FamilyGenerator.append_provider_summary_case("module Foo\nend\n", key: "gocardless")
-  end
-
-  # The row's sync status reads both maps, and its Sync button posts a key that
-  # Settings::ProvidersController#sync looks up in PANEL_SYNCABLE_TYPES.
-  test "adds the provider to the sync maps of the real providers controller" do
-    source = Rails.root.join("app/controllers/settings/providers_controller.rb").read
-    result = Provider::FamilyGenerator.append_panel_syncable_type(source, key: "gocardless", class_name: "Gocardless")
-    result = Provider::FamilyGenerator.append_family_panel_item(result, key: "gocardless")
-
-    assert_parses result
-    syncable = result[/PANEL_SYNCABLE_TYPES = \{\n(.*?)\n\s*\}\.freeze/m, 1].lines(chomp: true)
-    items = result[/def family_panel_items\n\s*\{\n(.*?)\n\s*\}\n/m, 1].lines(chomp: true)
-
-    assert_equal %("gocardless" => "GocardlessItem"), syncable.last.squish
-    assert_equal %("gocardless" => @gocardless_items), items.last.squish
-    # The arrows line up with the entry above, however long the longest key is.
-    assert_equal syncable[-2].index("=>"), syncable.last.index("=>")
-    assert_equal items[-2].index("=>"), items.last.index("=>")
   end
 
   test "keeps a space before the arrow when the new key is longer than the column" do
@@ -372,52 +321,11 @@ class Provider::FamilyGeneratorTest < ActiveSupport::TestCase
     assert_includes generated, "<%= tag.div id: dom_id(gocardless_item) do %>"
   end
 
-  test "the generated item card renders the visible accounts it is given" do
-    Current.session = Session.create!(user: users(:family_admin))
-    item = redbark_items(:one)
-    linked = accounts(:depository)
-    generated = render_template("item_partial.html.erb.tt", file_name: "redbark")
-    render_card = lambda do |visible|
-      render_generated_view(generated, partial: "redbark_items/redbark_item",
-                                       locals: { redbark_item: item.reload, visible_accounts: visible.call })
-    end
-
-    before = render_card.call(-> { item.accounts.to_a })
-    AccountProvider.create!(account: linked, provider: redbark_accounts(:savings_account))
-    after = render_card.call(-> { item.accounts.to_a })
-    other = render_card.call(-> { [ accounts(:investment) ] })
-
-    assert_includes after, item.name
-    assert_not_includes before, linked.name
-    assert_includes after, linked.name
-    assert_not_includes after, accounts(:investment).name
-    # The card lists the accounts it is given, not every account on the connection.
-    assert_includes other, accounts(:investment).name
-    assert_not_includes other, linked.name
-  end
-
-  test "the generated setup accounts view is plain ERB that renders" do
+  test "the generated setup accounts view is plain ERB" do
     assert_plain_erb render_template("setup_accounts.html.erb.tt", file_name: "gocardless")
-
-    item = redbark_items(:one)
-    html = render_generated_view(render_template("setup_accounts.html.erb.tt", file_name: "redbark"),
-                                 template: "redbark_items/setup_accounts",
-                                 assigns: { redbark_item: item, unlinked_accounts: item.redbark_accounts })
-
-    assert_includes html, redbark_accounts(:savings_account).name
-    assert_includes html, "/redbark_items/#{item.id}/complete_account_setup"
   end
 
-  test "the generated select existing account view is plain ERB that renders" do
+  test "the generated select existing account view is plain ERB" do
     assert_plain_erb render_template("select_existing_account.html.erb.tt", file_name: "gocardless")
-
-    account = accounts(:depository)
-    html = render_generated_view(render_template("select_existing_account.html.erb.tt", file_name: "redbark"),
-                                 template: "redbark_items/select_existing_account",
-                                 assigns: { account: account, redbark_accounts: [ redbark_accounts(:savings_account) ] })
-
-    assert_includes html, account.name
-    assert_includes html, redbark_accounts(:savings_account).name
-    assert_includes html, "/redbark_items/link_existing_account"
   end
 end

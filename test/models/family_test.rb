@@ -328,7 +328,7 @@ class FamilyTest < ActiveSupport::TestCase
   test "known_merchant_names includes assigned and family-owned merchant names, deduplicates matching names, and excludes recently-unlinked merchants" do
     family = families(:dylan_family)
 
-    provider_merchant = ProviderMerchant.create!(name: "Known Provider Merchant", source: "enable_banking")
+    provider_merchant = ProviderMerchant.create!(name: "Known Provider Merchant", source: "synth")
     transactions(:one).update!(merchant: provider_merchant)
 
     # Same name as the assigned provider merchant, but a distinct record -- proves
@@ -342,7 +342,7 @@ class FamilyTest < ActiveSupport::TestCase
     # known_merchant_names must NOT, since it's used to auto-match/auto-assign new
     # transactions and re-surfacing a deliberately-removed association would undo
     # the user's action silently.
-    unlinked_merchant = ProviderMerchant.create!(name: "Recently Unlinked Merchant", source: "enable_banking")
+    unlinked_merchant = ProviderMerchant.create!(name: "Recently Unlinked Merchant", source: "synth")
     transactions(:one).update!(merchant: unlinked_merchant)
     unlinked_merchant.unlink_from_family(family)
     transactions(:one).update!(merchant: provider_merchant)
@@ -632,37 +632,6 @@ class FamilyTest < ActiveSupport::TestCase
 
     refute_same first_call_for_admin, family.investment_statement(user: member),
       "different users must not share a memoized InvestmentStatement (family sharing scoping)"
-  end
-
-  test "requests transaction refreshes for syncable Plaid items" do
-    family = families(:dylan_family)
-
-    assert_enqueued_with job: PlaidTransactionsRefreshAllJob, args: [ family, { source: "TestSync" } ] do
-      family.request_plaid_transactions_refreshes_later(source: "TestSync")
-    end
-  end
-
-  test "records a sanitized diagnostic and returns when Plaid refresh orchestration cannot be enqueued" do
-    family = families(:dylan_family)
-
-    PlaidTransactionsRefreshAllJob.stubs(:perform_later).raises(RedisClient::Error, "Redis unavailable")
-
-    assert_difference "DebugLogEntry.count", 1 do
-      assert_nil family.request_plaid_transactions_refreshes_later(source: "TestSync")
-    end
-
-    debug_entry = DebugLogEntry.order(:created_at).last
-    assert_equal "TestSync", debug_entry.source
-    assert_equal "RedisClient::Error", debug_entry.metadata["error_class"]
-  end
-
-  test "does not raise when both Plaid refresh enqueue and diagnostic capture fail" do
-    family = families(:dylan_family)
-
-    PlaidTransactionsRefreshAllJob.stubs(:perform_later).raises(RedisClient::Error, "Redis unavailable")
-    DebugLogEntry.stubs(:capture).raises(ActiveRecord::ConnectionNotEstablished, "DB unavailable")
-
-    assert_nil family.request_plaid_transactions_refreshes_later(source: "TestSync")
   end
 
   # A non-loopback http:// endpoint is the misconfiguration these guard: the

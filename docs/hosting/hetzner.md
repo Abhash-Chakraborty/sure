@@ -408,9 +408,8 @@ After successful deployment:
 
 1. **Create your admin account** at `https://yourdomain.com`
 2. **Set up your first family** in the application
-3. **Configure bank connections** (if using Plaid integration)
-4. **Set up additional users** as needed
-5. **Monitor your deployment** using the health check logs
+3. **Set up additional users** as needed
+4. **Monitor your deployment** using the health check logs
 
 ## Support
 

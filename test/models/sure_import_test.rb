@@ -814,7 +814,7 @@ class SureImportTest < ActiveSupport::TestCase
       { type: "ProviderMerchant", data: {
         id: "provider-merchant-1",
         name: "AMZN MKTP",
-        source: "plaid",
+        source: "synth",
         provider_merchant_id: "plaid_amzn"
       } },
       { type: "Transaction", data: {
@@ -864,7 +864,7 @@ class SureImportTest < ActiveSupport::TestCase
 
     assert_equal "complete", @import.status
     assert_equal "matched", @import.verification_status
-    assert_nil ProviderMerchant.find_by(provider_merchant_id: "plaid_amzn", source: "plaid")
+    assert_nil ProviderMerchant.find_by(provider_merchant_id: "plaid_amzn", source: "synth")
 
     merchant = @family.entries.find_by!(name: "Amazon purchase").entryable.merchant
     assert_instance_of FamilyMerchant, merchant
@@ -885,7 +885,7 @@ class SureImportTest < ActiveSupport::TestCase
 
   test "provider merchant import reuses an existing matching record instead of duplicating or overwriting it" do
     existing = ProviderMerchant.create!(
-      name: "AMZN MKTP", source: "plaid", provider_merchant_id: "plaid_amzn", website_url: "https://amazon.com"
+      name: "AMZN MKTP", source: "synth", provider_merchant_id: "plaid_amzn", website_url: "https://amazon.com"
     )
 
     attach_ndjson(build_ndjson([
@@ -900,7 +900,7 @@ class SureImportTest < ActiveSupport::TestCase
       { type: "ProviderMerchant", data: {
         id: "provider-merchant-1",
         name: "AMZN MKTP",
-        source: "plaid",
+        source: "synth",
         provider_merchant_id: "plaid_amzn",
         website_url: "https://should-not-overwrite.example.com"
       } },
@@ -929,7 +929,7 @@ class SureImportTest < ActiveSupport::TestCase
   end
 
   test "provider merchant import never writes to an existing match, even when its fields are blank" do
-    existing = ProviderMerchant.create!(name: "AMZN MKTP", source: "plaid", provider_merchant_id: "plaid_amzn")
+    existing = ProviderMerchant.create!(name: "AMZN MKTP", source: "synth", provider_merchant_id: "plaid_amzn")
 
     attach_ndjson(provider_merchant_ndjson(
       website_url: "https://amazon.com", logo_url: "https://cdn.example.com/amzn.png", color: "#123456"
@@ -948,7 +948,7 @@ class SureImportTest < ActiveSupport::TestCase
   end
 
   test "preflight warns with the actual diff when an existing provider merchant differs from the file" do
-    ProviderMerchant.create!(name: "AMZN MKTP", source: "plaid", provider_merchant_id: "plaid_amzn", website_url: "https://amazon.com")
+    ProviderMerchant.create!(name: "AMZN MKTP", source: "synth", provider_merchant_id: "plaid_amzn", website_url: "https://amazon.com")
     attach_ndjson(provider_merchant_ndjson(website_url: "https://amazon.co.uk"))
 
     result = @import.sure_preflight
@@ -967,7 +967,7 @@ class SureImportTest < ActiveSupport::TestCase
     attach_ndjson(provider_merchant_ndjson(website_url: "https://amazon.com"))
     assert_empty @import.sure_preflight.provider_merchant_diff_warnings
 
-    ProviderMerchant.create!(name: "AMZN MKTP", source: "plaid", provider_merchant_id: "plaid_amzn", website_url: "https://amazon.com")
+    ProviderMerchant.create!(name: "AMZN MKTP", source: "synth", provider_merchant_id: "plaid_amzn", website_url: "https://amazon.com")
     assert_empty @import.sure_preflight.provider_merchant_diff_warnings
   end
 
@@ -1130,7 +1130,7 @@ class SureImportTest < ActiveSupport::TestCase
           currency: "USD", kind: "opening_anchor"
         } },
         { type: "ProviderMerchant", data: {
-          id: "provider-merchant-1", name: "AMZN MKTP", source: "plaid", provider_merchant_id: "plaid_amzn"
+          id: "provider-merchant-1", name: "AMZN MKTP", source: "synth", provider_merchant_id: "plaid_amzn"
         }.merge(merchant_attrs) },
         { type: "Transaction", data: {
           id: "transaction-1", account_id: "account-1", merchant_id: "provider-merchant-1",

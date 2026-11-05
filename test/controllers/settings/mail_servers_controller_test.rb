@@ -158,10 +158,6 @@ class Settings::MailServersControllerTest < ActionDispatch::IntegrationTest
       provider = mock
       provider.stubs(:health_status).returns(:healthy)
       provider.stubs(:usage).returns(provider_success_response(OpenStruct.new(used: 10, limit: 100, utilization: 10, plan: "free")))
-      Provider::Registry.stubs(:get_provider).with(:twelve_data).returns(provider)
       Provider::Registry.stubs(:get_provider).with(:yahoo_finance).returns(provider)
-      Provider::Registry.stubs(:get_provider).with(:rentcast).returns(nil)
-      Provider::Registry.stubs(:get_provider).with(:realie).returns(nil)
-      Provider::Registry.stubs(:get_provider).with(:chimnie).returns(nil)
     end
 end

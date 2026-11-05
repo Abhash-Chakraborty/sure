@@ -242,28 +242,11 @@ class Portfolio::FlowClassifierTest < ActiveSupport::TestCase
     assert_equal :external_outflow, @family_scope.classify(withdrawal)
   end
 
-  test "a pending flag that is not a boolean is read the same way by both forms" do
-    # ActiveModel::Type::Boolean is the Ruby definition, so anything present
-    # that is not one of its false values is pending. The SQL form used to
-    # cast with ::boolean, which disagrees ('no' is false to PostgreSQL and
-    # true to ActiveModel) and raises on anything it cannot parse.
-    shapes = { "no" => nil, "maybe" => nil, "true" => nil, "false" => :income, "0" => :income, "" => :income }
-
-    shapes.each do |flag, expected|
-      entry = create_labelled_transaction(account: @brokerage, label: "Dividend", amount: -10, extra: { "plaid" => { "pending" => flag } })
-
-      assert_equal expected, @family_scope.classify(entry.reload), "Ruby, pending=#{flag.inspect}"
-      assert_equal expected, @family_scope.classify_ids([ entry.id ])[entry.id], "SQL, pending=#{flag.inspect}"
-    end
-  end
-
-  test "excluded entries, pending transactions and valuations are not classified" do
+  test "excluded entries and valuations are not classified" do
     excluded = create_portfolio_trade(account: @brokerage, qty: 1, price: 10, excluded: true)
-    pending = create_labelled_transaction(account: @brokerage, label: "Dividend", amount: -10, extra: { "simplefin" => { "pending" => true } })
     valuation = @brokerage.entries.create!(name: "Valuation", date: Date.current, amount: 1000, currency: "USD", entryable: Valuation.new(kind: "reconciliation"))
 
     assert_nil @family_scope.classify(excluded)
-    assert_nil @family_scope.classify(pending)
     assert_nil @family_scope.classify(valuation)
   end
 

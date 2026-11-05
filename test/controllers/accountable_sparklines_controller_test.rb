@@ -137,12 +137,7 @@ class AccountableSparklinesControllerTest < ActionDispatch::IntegrationTest
     assert_includes requested_account_ids, accounts(:connected).id
   end
 
-  test "linked investment sparkline does not load full account records" do
-    AccountProvider.create!(
-      account: accounts(:investment),
-      provider: snaptrade_accounts(:fidelity_401k)
-    )
-
+  test "investment sparkline does not load full account records" do
     Rails.cache.clear
 
     queries = capture_sql_queries do

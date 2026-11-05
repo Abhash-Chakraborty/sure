@@ -83,7 +83,7 @@ class PropertiesController < ApplicationController
 
     unless configured_avm_providers.map(&:to_s).include?(@property.avm_provider)
       redirect_back_or_to account_path(@account),
-                          alert: t(".not_configured", provider: t("properties.avm_providers.#{@property.avm_provider}")) and return
+                          alert: t(".not_configured", provider: t("properties.avm_providers.#{@property.avm_provider}", default: @property.avm_provider.to_s.titleize)) and return
     end
 
     SyncPropertyValuationsJob.perform_later(property_id: @property.id, force: true)

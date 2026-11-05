@@ -311,7 +311,6 @@ tr:
       delete_subtitle: Bu işlem kalıcı olarak silinir, geçmiş bakiyelerinizi etkiler
         ve geri alınamaz.
       delete_title: İşlemi sil
-      description: Açıklama
       details: Detaylar
       exclude: Hariç Tut
       exclude_description: Hariç tutulan işlemler bütçe hesaplamalarından ve raporlardan
@@ -322,7 +321,6 @@ tr:
       mark_recurring_subtitle: Bunu yinelenen bir işlem olarak takip edin. Tutar farkı,
         geçmiş 6 aydaki benzer işlemlerden otomatik olarak hesaplanır.
       mark_recurring_title: Yinelenen İşlem
-      memo: Not
       merchant_label: Satıcı
       merge_duplicate: Evet, birleştir
       name_label: İsim
@@ -335,7 +333,6 @@ tr:
       one_time_title: Tek seferlik %{type}
       open_matcher: Eşleştiriciyi aç
       overview: Genel Bakış
-      payee: Alıcı
       pending_duplicate_merger_button: Birleştiriciyi aç
       pending_duplicate_merger_description: Bu bekleyen işlemi gerçekleşen sürümüyle
         manuel olarak birleştirin.
@@ -343,7 +340,6 @@ tr:
       potential_duplicate_description: Bu bekleyen işlem aşağıdaki gerçekleşen işlemle
         aynı olabilir. Öyleyse, çift sayımı önlemek için bunları birleştirin.
       potential_duplicate_title: Olası kopya tespit edildi
-      provider_extras: Sağlayıcı ek bilgileri
       settings: Ayarlar
       tab_transactions: İşlemler
       tab_upcoming: Yaklaşan

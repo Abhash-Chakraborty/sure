@@ -37,7 +37,7 @@ class AccountableSparklinesController < ApplicationController
     def account_identity_rows
       @account_identity_rows ||= account_scope
         .left_outer_joins(:account_providers)
-        .pluck(:id, :plaid_account_id, :simplefin_account_id, Arel.sql("account_providers.id"))
+        .pluck(:id, Arel.sql("account_providers.id"))
     end
 
     def build_series
@@ -59,8 +59,8 @@ class AccountableSparklinesController < ApplicationController
     def requires_normalized_aggregation?
       return false unless %w[Investment Crypto].include?(@accountable.name)
 
-      account_identity_rows.any? do |_account_id, plaid_account_id, simplefin_account_id, account_provider_id|
-        plaid_account_id.present? || simplefin_account_id.present? || account_provider_id.present?
+      account_identity_rows.any? do |_account_id, account_provider_id|
+        account_provider_id.present?
       end
     end
 

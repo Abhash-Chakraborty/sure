@@ -335,8 +335,7 @@ class Transaction::Search
       return query if statuses.uniq.sort == [ "confirmed", "pending" ] # Both selected = no filter
 
       # Delegate to the model scopes so the provider list stays sourced from
-      # Transaction::PENDING_PROVIDERS. Previously this method hardcoded only
-      # simplefin/plaid/lunchflow, silently dropping enable_banking transactions.
+      # Transaction::PENDING_PROVIDERS.
       case statuses.sort
       when [ "pending" ]
         query.pending

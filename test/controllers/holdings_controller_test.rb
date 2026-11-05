@@ -232,7 +232,6 @@ class HoldingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "reset_security restores the provider security and confirms it" do
-    @holding.account.update!(plaid_account: plaid_accounts(:one))
     @holding.update!(security: securities(:msft), provider_security: securities(:aapl), security_locked: true)
 
     post reset_security_holding_path(@holding)

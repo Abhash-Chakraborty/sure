@@ -77,8 +77,6 @@ node_modules
 
 compose.yml
 
-plaid_test_accounts/
-
 # Added by Claude
 .claude/settings.local.json
 docs/superpowers/

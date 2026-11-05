@@ -81,8 +81,6 @@ class Goal::CurrencyConversionTest < ActiveSupport::TestCase
     rate("EUR", "USD", 1.1, date: past)
     rate("EUR", "USD", 1.5)
     eur.entries.create!(name: "Deposit", date: past, amount: -300, currency: "EUR", entryable: Transaction.new)
-    eur.entries.create!(name: "Pending", date: past, amount: -900, currency: "EUR",
-                        entryable: Transaction.new(extra: { plaid: { pending: true } }))
 
     assert_equal 150, goal.pace
     assert_equal 1_500, goal.current_balance

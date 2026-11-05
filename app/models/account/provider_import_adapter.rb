@@ -794,10 +794,13 @@ class Account::ProviderImportAdapter
     # 5. Entry type is Transaction (not Trade or Valuation)
     # 6. Optionally same name (if name parameter is provided)
     # 7. Not in the excluded IDs list (if provided)
+    # 8. Not a part of a split entry: a person's share of another movement,
+    #    never a copy of the incoming one
     query = account.entries
                    .where(entryable_type: "Transaction")
                    .where(amount: amount)
                    .where(currency: currency)
+                   .where(parent_entry_id: nil)
 
     query = if date_window.to_i.zero?
       query.where(date: date)
@@ -1149,11 +1152,9 @@ class Account::ProviderImportAdapter
     end
 
     # A protected entry keeps its name, so the values that name was built from have
-    # to stay as well. Rule::ConditionFilter::TransactionName rebuilds a Plaid name
-    # from the stored original_description; refreshing that value while the name
-    # stays put would make the rebuilt name disagree with the real one, and flip
-    # `=` and `!=` rules on the entry. The drawer shows the kept value too, so it
-    # agrees with the name the user sees.
+    # to stay as well: refreshing them while the name stays put would make the
+    # stored values disagree with the name. The drawer shows the kept value too, so
+    # it agrees with the name the user sees.
     #
     # A key with nothing stored yet takes the incoming value: a row imported before
     # the key existed was never combined, so there is nothing to keep in step.

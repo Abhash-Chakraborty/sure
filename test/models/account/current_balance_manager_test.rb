@@ -5,12 +5,8 @@ class Account::CurrentBalanceManagerTest < ActiveSupport::TestCase
     @family = families(:empty)
     @linked_account = accounts(:connected)
 
-    # Create account_provider to make the account actually linked
-    # (The fixture has plaid_account but that's the legacy association)
-    @linked_account.account_providers.find_or_create_by!(
-      provider_type: "PlaidAccount",
-      provider_id: plaid_accounts(:one).id
-    )
+    # No provider account class is installed, so treat this account as linked
+    @linked_account.stubs(:linked?).returns(true)
   end
 
   # -------------------------------------------------------------------------------------------------

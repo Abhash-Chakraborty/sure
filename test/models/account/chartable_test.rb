@@ -64,116 +64,12 @@ class Account::ChartableTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { account.balance_series(view: :bogus) }
   end
 
-  test "trims placeholder history for linked investment accounts without trades" do
-    account = accounts(:investment)
-    account.entries.destroy_all
-    account.holdings.destroy_all
-
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
-
-    account.holdings.create!(
-      security: securities(:aapl),
-      date: 5.days.ago.to_date,
-      qty: 1,
-      price: 100,
-      amount: 100,
-      currency: "USD",
-      account_provider: account.account_providers.last
-    )
-
-    raw_series = Series.new(
-      start_date: 10.days.ago.to_date,
-      end_date: Date.current,
-      interval: "1 day",
-      values: [
-        Series::Value.new(date: 10.days.ago.to_date, date_formatted: "", value: Money.new(0, "USD")),
-        Series::Value.new(date: 9.days.ago.to_date, date_formatted: "", value: Money.new(0, "USD")),
-        Series::Value.new(date: 8.days.ago.to_date, date_formatted: "", value: Money.new(0, "USD")),
-        Series::Value.new(date: 5.days.ago.to_date, date_formatted: "", value: Money.new(100, "USD")),
-        Series::Value.new(date: Date.current, date_formatted: "", value: Money.new(110, "USD"))
-      ],
-      favorable_direction: account.favorable_direction
-    )
-
-    builder = mock
-    Balance::ChartSeriesBuilder.expects(:new).returns(builder)
-    builder.expects(:balance_series).returns(raw_series)
-
-    series = account.balance_series
-
-    assert_equal 5.days.ago.to_date, series.start_date
-    assert_equal [ 5.days.ago.to_date, Date.current ], series.values.map(&:date)
-  end
-
-  test "trims unstable provider snapshot history for linked investment accounts without trades" do
-    account = accounts(:investment)
-    account.entries.destroy_all
-    account.holdings.destroy_all
-
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
-
-    account.holdings.create!(
-      security: securities(:aapl),
-      date: 5.days.ago.to_date,
-      qty: 1,
-      price: 100,
-      amount: 100,
-      currency: "USD",
-      account_provider: account.account_providers.last
-    )
-    account.holdings.create!(
-      security: securities(:aapl),
-      date: 4.days.ago.to_date,
-      qty: 1,
-      price: 100,
-      amount: 100,
-      currency: "USD",
-      account_provider: account.account_providers.last
-    )
-    account.holdings.create!(
-      security: securities(:msft),
-      date: Date.current,
-      qty: 1,
-      price: 120,
-      amount: 120,
-      currency: "USD",
-      account_provider: account.account_providers.last
-    )
-
-    raw_series = Series.new(
-      start_date: 5.days.ago.to_date,
-      end_date: Date.current,
-      interval: "1 day",
-      values: [
-        Series::Value.new(date: 5.days.ago.to_date, date_formatted: "", value: Money.new(100, "USD")),
-        Series::Value.new(date: 4.days.ago.to_date, date_formatted: "", value: Money.new(101, "USD")),
-        Series::Value.new(date: Date.current, date_formatted: "", value: Money.new(120, "USD"))
-      ],
-      favorable_direction: account.favorable_direction
-    )
-
-    builder = mock
-    Balance::ChartSeriesBuilder.expects(:new).returns(builder)
-    builder.expects(:balance_series).returns(raw_series)
-
-    series = account.balance_series
-
-    assert_equal Date.current, series.start_date
-    assert_equal [ Date.current ], series.values.map(&:date)
-  end
-
   test "prepends inception anchor point when coarse periodic sampling misses opening date" do
     account = accounts(:investment)
     account.entries.destroy_all
     account.holdings.destroy_all
 
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
+    account.stubs(:linked?).returns(true)
 
     opening_date = 8.days.ago.to_date
     account.set_opening_anchor_balance(balance: 0, date: opening_date)
@@ -236,9 +132,7 @@ class Account::ChartableTest < ActiveSupport::TestCase
     account.entries.destroy_all
     account.holdings.destroy_all
 
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
+    account.stubs(:linked?).returns(true)
 
     opening_date = 8.days.ago.to_date
     account.set_opening_anchor_balance(balance: 1500, date: opening_date)
@@ -279,9 +173,7 @@ class Account::ChartableTest < ActiveSupport::TestCase
     account.entries.destroy_all
     account.holdings.destroy_all
 
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
+    account.stubs(:linked?).returns(true)
 
     trade_date = 8.days.ago.to_date
     account.entries.create!(
@@ -321,9 +213,7 @@ class Account::ChartableTest < ActiveSupport::TestCase
     account.entries.destroy_all
     account.holdings.destroy_all
 
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
+    account.stubs(:linked?).returns(true)
 
     opening_date = 8.days.ago.to_date
     account.set_opening_anchor_balance(balance: 5000, date: opening_date)
@@ -364,9 +254,7 @@ class Account::ChartableTest < ActiveSupport::TestCase
     account.entries.destroy_all
     account.holdings.destroy_all
 
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
+    account.stubs(:linked?).returns(true)
 
     opening_date = 2.years.ago.to_date
     account.set_opening_anchor_balance(balance: 0, date: opening_date)
@@ -407,9 +295,7 @@ class Account::ChartableTest < ActiveSupport::TestCase
     account.entries.destroy_all
     account.holdings.destroy_all
 
-    coinstats_item = account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account.account_providers.create!(provider: coinstats_account)
+    account.stubs(:linked?).returns(true)
 
     early_trade_date = 15.days.ago.to_date
     later_anchor_date = 8.days.ago.to_date

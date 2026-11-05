@@ -179,7 +179,7 @@ class Security::HealthCheckerTest < ActiveSupport::TestCase
     # e.g. the security's assigned provider was disabled in settings —
     # offline_reason: "provider_disabled" is more specific than the generic
     # health-check failure path and must not be overwritten by it.
-    @due_for_check_security.update!(offline: true, offline_reason: "provider_disabled", price_provider: "twelve_data")
+    @due_for_check_security.update!(offline: true, offline_reason: "provider_disabled", price_provider: "mfapi")
     @due_for_check_security.stubs(:price_data_provider).returns(nil)
 
     hc = Security::HealthChecker.new(@due_for_check_security)

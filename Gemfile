@@ -9,9 +9,6 @@ gem "rails", "~> 8.1.0"
 gem "pg", "~> 1.5"
 gem "redis", "~> 5.4"
 
-# Bech32/Bech32m encoding for watch-only Bitcoin addresses.
-gem "bech32", "1.5.1"
-
 # Deployment
 gem "puma", ">= 7.2.1"
 gem "bootsnap", require: false
@@ -84,12 +81,10 @@ gem "csv"
 gem "rchardet" # Character encoding detection
 gem "redcarpet"
 gem "stripe"
-gem "plaid"
 gem "httparty"
 gem "rotp", "~> 6.3"
 gem "rqrcode", "~> 3.0"
 gem "webauthn", "~> 3.4"
-gem "websocket-driver", "~> 0.8"
 gem "activerecord-import"
 gem "rubyzip", "~> 3.4"
 gem "pdf-reader", "~> 2.12"

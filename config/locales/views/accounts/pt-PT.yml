@@ -9,10 +9,8 @@ pt-PT:
     account:
       complete_setup: Concluir configuração
       edit: Editar
-      link_lunchflow: Ligar com Lunch Flow
       link_provider: Ligar serviço externo
       unlink_provider: Desligar serviço externo
-      change_simplefin_account: Alterar conta SimpleFIN
       troubleshoot: Resolver problemas
       enable: Ativar conta
       disable: Desativar conta
@@ -72,7 +70,6 @@ pt-PT:
         connected_entry: Ligar conta
         connected_entry_eu: Ligar conta da UE
         link_with_provider: "Ligar com %{provider}"
-        lunchflow_entry: Ligar conta do Lunch Flow
         manual_entry: Introduzir saldo da conta
         title: Como gostaria de adicionar?
       title: O que gostaria de adicionar?

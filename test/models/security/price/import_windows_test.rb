@@ -68,9 +68,7 @@ class Security::Price::ImportWindowsTest < ActiveSupport::TestCase
     family = Family.create!(name: "Smith", currency: "USD")
     account = family.accounts.create!(name: "Brokerage", currency: "USD", balance: 0, accountable: Investment.new)
     security = Security.create!(ticker: "LINKED", exchange_operating_mic: "XNAS")
-    provider_item = family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    provider_account = provider_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account_provider = AccountProvider.create!(account: account, provider: provider_account)
+    account_provider = link_provider!(account)
     first_held_date = 20.days.ago.to_date
     sold_date = 10.days.ago.to_date
 
@@ -138,5 +136,13 @@ class Security::Price::ImportWindowsTest < ActiveSupport::TestCase
       account.holdings.create!(security: security, date: 15.days.ago.to_date, qty: 10, price: 105, amount: 1050, currency: "USD")
       account.holdings.create!(security: security, date: Date.current, qty: 0, price: 110, amount: 0, currency: "USD")
       [ account, security ]
+    end
+
+    # No provider account model is installed, so the link is a bare
+    # account_providers row (skipping the polymorphic presence validation).
+    # The code under test only reads holdings' account_provider_id.
+    def link_provider!(account)
+      AccountProvider.new(account: account, provider_type: "TestProviderAccount", provider_id: SecureRandom.uuid)
+        .tap { |link| link.save!(validate: false) }
     end
 end

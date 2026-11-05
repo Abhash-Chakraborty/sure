@@ -196,8 +196,6 @@ class Rule::ActionExecutor::SplitTransactionTest < ActiveSupport::TestCase
 
   test "skips transactions that are not splittable" do
     transfer = create_transfer(from_account: @account, to_account: accounts(:credit_card), amount: 40)
-    pending = create_transaction(amount: 40, name: "Pending", account: @account)
-    pending.transaction.update!(extra: { "simplefin" => { "pending" => true } })
     excluded = create_transaction(amount: 40, name: "Excluded", account: @account, excluded: true)
     already_split = create_transaction(amount: 40, name: "Already split", account: @account)
     already_split.split!([ { name: "A", amount: 20 }, { name: "B", amount: 20 } ])
@@ -214,7 +212,6 @@ class Rule::ActionExecutor::SplitTransactionTest < ActiveSupport::TestCase
 
     assert_equal 0, modified
     refute transfer.outflow_transaction.entry.reload.split_parent?
-    refute pending.reload.split_parent?
     refute excluded.reload.split_parent?
     assert_equal 2, already_split.reload.child_entries.count
   end

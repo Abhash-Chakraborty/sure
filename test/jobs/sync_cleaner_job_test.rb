@@ -41,15 +41,6 @@ class SyncCleanerJobTest < ActiveSupport::TestCase
     assert_equal "processing", fresh_export.reload.status
   end
 
-  test "clears provider activity fetch flags stuck by lost job chains" do
-    stuck = snaptrade_accounts(:fidelity_401k)
-    stuck.update_columns(activities_fetch_pending: true, updated_at: 7.hours.ago)
-
-    SyncCleanerJob.perform_now
-
-    assert_not stuck.reload.activities_fetch_pending
-  end
-
   test "a failing sweep does not block the others" do
     Sync.expects(:clean).raises(StandardError.new("boom"))
 
@@ -75,22 +66,5 @@ class SyncCleanerJobTest < ActiveSupport::TestCase
     assert_equal "background_jobs", entry.category
     assert_equal stuck_import.family, entry.family
     assert_equal stuck_import.id, entry.metadata["record_id"]
-  end
-
-  test "activity-flag sweep isolates a failing model so later models still run" do
-    snaptrade = snaptrade_accounts(:fidelity_401k)
-    snaptrade.update_columns(activities_fetch_pending: true, updated_at: 7.hours.ago)
-
-    questrade = questrade_accounts(:one)
-    questrade.update_columns(activities_fetch_pending: true, updated_at: 7.hours.ago)
-
-    # SnaptradeAccount is swept before QuestradeAccount; a failing update! on a
-    # Snaptrade record must not skip the models that follow it.
-    SnaptradeAccount.any_instance.stubs(:update!).raises(ActiveRecord::RecordInvalid.new(SnaptradeAccount.new))
-
-    assert_nothing_raised { SyncCleanerJob.perform_now }
-
-    assert snaptrade.reload.activities_fetch_pending      # rolled back, still stuck
-    assert_not questrade.reload.activities_fetch_pending  # still cleared
   end
 end

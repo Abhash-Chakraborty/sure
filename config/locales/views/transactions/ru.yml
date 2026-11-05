@@ -319,7 +319,6 @@ ru:
       delete_subtitle: Это навсегда удалит операцию, повлияет на ваши исторические
         балансы и не может быть отменено.
       delete_title: Удалить операцию
-      description: Описание
       details: Детали
       exclude: Исключить
       exclude_description: Исключённые операции не будут учитываться в расчётах бюджета
@@ -329,7 +328,6 @@ ru:
       mark_recurring: Отметить как регулярную
       mark_recurring_subtitle: Отслеживайте это как регулярную операцию. Разница в сумме автоматически рассчитывается на основе последних 6 месяцев аналогичных операций.
       mark_recurring_title: Регулярная операция
-      memo: Заметка
       merchant_label: Продавец
       merge_duplicate: Да, объединить их
       name_label: Название
@@ -342,7 +340,6 @@ ru:
       one_time_title: Разовая %{type}
       open_matcher: Открыть сопоставитель
       overview: Обзор
-      payee: Получатель
       pending_duplicate_merger_button: Открыть объединение
       pending_duplicate_merger_description: Вручную объедините эту ожидающую операцию
         с ее проведенной версией.
@@ -351,7 +348,6 @@ ru:
         как и проведенная ниже. Если это так, объедините их, чтобы избежать двойного
         учета.
       potential_duplicate_title: Обнаружен возможный дубликат
-      provider_extras: Дополнения провайдера
       settings: Настройки
       tab_transactions: Операции
       tab_upcoming: Предстоящие

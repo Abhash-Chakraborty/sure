@@ -3,7 +3,6 @@ de:
   accounts:
     account:
       edit: Bearbeiten
-      link_lunchflow: Mit Lunch Flow verknüpfen
       link_provider: Mit Provider verknüpfen
       unlink_provider: Von Provider trennen
       troubleshoot: Fehlerbehebung
@@ -13,7 +12,6 @@ de:
       remove_default: Standard aufheben
       default_label: Standard
       delete: Konto löschen
-      change_simplefin_account: SimpleFIN-Konto wechseln
       complete_setup: Setup abschließen
       exclude_from_reports: Aus allen Berichten ausschließen
       excluded_from_reports_indicator: Nicht in Berichten
@@ -63,7 +61,6 @@ de:
         connected_entry: Konto verknüpfen
         connected_entry_eu: EU-Konto verknüpfen
         link_with_provider: "Mit %{provider} verknüpfen"
-        lunchflow_entry: Lunch-Flow-Konto verknüpfen
         manual_entry: Kontostand manuell eingeben
         title: Wie möchtest du es hinzufügen
       title: Was möchtest du hinzufügen

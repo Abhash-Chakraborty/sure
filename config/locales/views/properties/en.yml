@@ -22,10 +22,6 @@ en:
       subtype_prompt: Select property type
       year_built: Year built
       year_built_placeholder: '2000'
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
-      chimnie: Chimnie
     new:
       title: Enter property manually
       next: "Next"
@@ -52,7 +48,6 @@ en:
         high: "High"
         medium: "Medium"
         low: "Low"
-      avm_attribution_chimnie: "Valuation data from Chimnie. Contains OS data © Crown copyright and database right, Royal Mail data © Royal Mail copyright and database right, and HM Land Registry data © Crown copyright and database right, licensed under the Open Government Licence v3.0."
       avm_preview_confirm: "Add property"
     address:
       title: "Enter property manually"

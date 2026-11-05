@@ -33,9 +33,6 @@ class IncomeStatement::ScopedTransactionsQueryEquivalenceTest < ActiveSupport::T
     transfer = create_transaction(account: @checking, amount: 60, date: 5.days.ago.to_date)
     transfer.entryable.update!(investment_activity_label: "Transfer")
 
-    pending = create_transaction(account: @checking, amount: 20, date: 5.days.ago.to_date)
-    pending.entryable.update!(extra: { "simplefin" => { "pending" => true } })
-
     create_transaction(account: @savings, amount: 75, date: 10.days.ago.to_date)
 
     ExchangeRate.create! from_currency: "EUR", to_currency: "USD", date: 5.days.ago.to_date, rate: 2

@@ -21,7 +21,6 @@ pt-PT:
         general: Definições Gerais
         ai_assistant: Assistente de IA
         financial_data_providers: Serviços de Dados Financeiros
-        property_valuation_providers: Serviços de Avaliação de Imóveis
         sync_settings: Definições de Sincronização
         invites: Códigos de Convite
         title: Self-Hosting
@@ -38,25 +37,13 @@ pt-PT:
         securities_title: Serviços de Valores Mobiliários
         securities_description: Ative um ou mais serviços para obter preços de ações, ETFs e fundos de investimento. Ao pesquisar, todos os serviços ativados são consultados e os resultados são combinados.
         env_configured_message: A seleção de serviço está desativada porque estão definidas variáveis de ambiente. Para ativar a seleção aqui, remova essas variáveis de ambiente da sua configuração.
-        twelve_data_hint: requer chave de API, 800 créditos/dia
         yahoo_finance_hint: gratuito, sem necessidade de chave de API
-        requires_api_key: requer chave de API
-        requires_api_key_eodhd: requer chave de API, limite de 20 chamadas/dia
-        requires_api_key_alpha_vantage: requer chave de API, limite de 25 chamadas/dia
         mfapi_hint: gratuito, sem chave de API -- apenas fundos indianos
         binance_public_hint: gratuito, sem chave de API -- apenas criptomoedas (BTC, ETH, etc.)
-        moex_public_hint: gratuito, sem chave de API -- ações, fundos e obrigações russos (MOEX), incl. FX RUB
-        tinkoff_invest_hint: requer token de leitura -- preços de ações/fundos/obrigações russos + logótipos de marcas
         providers:
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-          tiingo: Tiingo
-          eodhd: EODHD
-          alpha_vantage: Alpha Vantage
           mfapi: MFAPI.in
           binance_public: Binance
-          moex_public: MOEX
-          tinkoff_invest: T-Invest (T-Bank)
           frankfurter: Frankfurter
       assistant_settings:
         title: Assistente de IA
@@ -159,78 +146,6 @@ pt-PT:
         unavailable_title: Não foi possível verificar o Yahoo Finance.
         unavailable_message: Não foi possível contactar o Yahoo Finance ou este devolveu uma resposta inesperada. Verifique a sua ligação à internet e tente novamente mais tarde.
         status_unknown: O estado do Yahoo Finance está a ser verificado.
-      rentcast_settings:
-        title: RentCast
-        description: Introduza a sua chave de API do RentCast para procurar detalhes de imóveis nos EUA e estimativas de valor ao adicionar um imóvel. O nível gratuito está limitado a 50 pedidos de API por mês, partilhados entre pesquisas de imóveis e atualizações diárias de valor. Num plano pago, aumente o limite com a variável de ambiente RENTCAST_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configurado com sucesso através da variável de ambiente RENTCAST_API_KEY.
-        label: Chave de API
-        placeholder: Introduza a sua chave de API do RentCast aqui
-        usage: "%{used} de %{limit} pedidos mensais utilizados"
-      realie_settings:
-        title: Realie
-        description: Introduza a sua chave de API do Realie para procurar detalhes de imóveis nos EUA e estimativas de valor ao adicionar um imóvel. O nível gratuito está limitado a 25 pedidos de API por mês, partilhados entre pesquisas de imóveis e atualizações diárias de valor. Num plano pago, aumente o limite com a variável de ambiente REALIE_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configurado com sucesso através da variável de ambiente REALIE_API_KEY.
-        label: Chave de API
-        placeholder: Introduza a sua chave de API do Realie aqui
-        usage: "%{used} de %{limit} pedidos mensais utilizados"
-      tiingo_settings:
-        title: Tiingo
-        description: Introduza o token de API fornecido pela Tiingo. O nível gratuito suporta 50 símbolos únicos por hora com mais de 30 anos de dados históricos.
-        env_configured_message: Configurado com sucesso através da variável de ambiente TIINGO_API_KEY.
-        label: Token de API
-        placeholder: Introduza o seu token de API da Tiingo aqui
-        show_details: "(mostrar detalhes)"
-        step_1_html: 'Visite <a href="https://www.tiingo.com" target="_blank" rel="noopener noreferrer" class="underline">tiingo.com</a> e crie uma conta gratuita.'
-        step_2_html: 'Vá para a página <a href="https://www.tiingo.com/account/api/token" target="_blank" rel="noopener noreferrer" class="underline">API Token</a>.'
-        step_3: Copie o seu token de API e cole-o abaixo.
-      tinkoff_invest_settings:
-        title: T-Invest (T-Bank)
-        description: Introduza um token de API de leitura da T-Invest. Utilizado para obter logótipos de marcas para valores mobiliários (incl. fundos e obrigações, mesmo quando a MOEX define os preços) e, quando ativado acima, preços para instrumentos russos.
-        env_configured_message: Configurado com sucesso através da variável de ambiente TINKOFF_INVEST_API_KEY.
-        label: Token de API
-        placeholder: Introduza o seu token de API da T-Invest aqui
-        show_details: "(mostrar detalhes)"
-        step_1: Abra os investimentos do T-Bank, depois Definições e depois tokens de API (requer uma conta de corretagem T-Bank aberta).
-        step_2: Crie um token com acesso de leitura.
-        step_3: Copie o token e cole-o abaixo.
-      eodhd_settings:
-        title: EODHD
-        description: Introduza o token de API fornecido pela EODHD. Suporta ETFs da UE na LSE, XETRA e noutras bolsas internacionais.
-        env_configured_message: Configurado com sucesso através da variável de ambiente EODHD_API_KEY.
-        label: Token de API
-        placeholder: Introduza o seu token de API da EODHD aqui
-        show_details: "(mostrar detalhes)"
-        step_1_html: 'Visite <a href="https://eodhd.com/register" target="_blank" rel="noopener noreferrer" class="underline">eodhd.com</a> e crie uma conta gratuita.'
-        step_2_html: 'Vá para o seu <a href="https://eodhd.com/cp/dashboard" target="_blank" rel="noopener noreferrer" class="underline">Dashboard</a> para encontrar o seu token de API.'
-        step_3: Copie o seu token de API e cole-o abaixo.
-        rate_limit_warning: "O nível gratuito da EODHD está limitado a 20 chamadas de API por dia. É melhor utilizado como serviço suplementar para ETFs da UE que não estão disponíveis noutros serviços."
-      alpha_vantage_settings:
-        title: Alpha Vantage
-        description: Introduza a chave de API da Alpha Vantage. Suporta ETFs da UE na London Stock Exchange, XETRA e noutras bolsas.
-        env_configured_message: Configurado com sucesso através da variável de ambiente ALPHA_VANTAGE_API_KEY.
-        label: Chave de API
-        placeholder: Introduza a sua chave de API da Alpha Vantage aqui
-        show_details: "(mostrar detalhes)"
-        step_1_html: 'Visite <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener noreferrer" class="underline">alphavantage.co</a> e obtenha a sua chave de API gratuita.'
-        step_2: Copie a chave de API e cole-a abaixo.
-        rate_limit_warning: "O nível gratuito da Alpha Vantage está limitado a 25 chamadas de API por dia. É melhor utilizado como serviço suplementar para ETFs da UE que não estão disponíveis noutros serviços."
-        no_health_check_note: "A verificação de estado da ligação não está disponível para este serviço devido ao limite de pedidos estrito."
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} chamadas diárias da API utilizadas (%{percentage})"
-        description: Introduza a chave de API fornecida pela Twelve Data
-        env_configured_message: Configurado com sucesso através da variável de ambiente TWELVE_DATA_API_KEY.
-        label: Chave de API
-        placeholder: Introduza a sua chave de API aqui
-        show_details: "(mostrar detalhes)"
-        step_1_html: 'Visite <a href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer" class="underline">twelvedata.com</a> e crie uma conta gratuita de Developer da Twelve Data.'
-        step_2_html: 'Vá para a página <a href="https://twelvedata.com/account/api-keys" target="_blank" rel="noopener noreferrer" class="underline">API Keys</a>.'
-        step_3: Revele o seu Secret Key e cole-o abaixo.
-        plan: "plano %{plan}"
-        plan_upgrade_warning_title: Alguns tickers requerem um plano pago
-        plan_upgrade_warning_description: Os seguintes tickers da sua carteira não conseguem sincronizar preços com o seu plano atual da Twelve Data.
-        requires_plan: requer plano %{plan}
-        view_pricing: Ver preços da Twelve Data
-        title: Twelve Data
       update:
         failure: Valor de definição inválido
         success: Definições atualizadas
@@ -256,6 +171,3 @@ pt-PT:
         auto_sync_description: Quando ativada, todas as contas serão sincronizadas automaticamente todos os dias à hora especificada.
         auto_sync_time_label: Hora de sincronização (HH:MM)
         auto_sync_time_description: Defina a hora para a sincronização automática.
-        include_pending_label: Incluir transações pendentes
-        include_pending_description: Quando ativada, a opção permite importar automaticamente as transações pendentes (não liquidadas) e reconciliá-las quando forem registadas. Desative-a se o seu banco fornecer informações pouco fiáveis sobre transações pendentes.
-        env_configured_message: Esta definição está desativada porque está definida uma variável de ambiente do serviço (SIMPLEFIN_INCLUDE_PENDING ou PLAID_INCLUDE_PENDING). Remova-a para ativar esta definição.

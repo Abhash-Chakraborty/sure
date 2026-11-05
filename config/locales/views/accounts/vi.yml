@@ -9,10 +9,8 @@ vi:
     account:
       complete_setup: Hoàn thành thiết lập
       edit: Chỉnh sửa
-      link_lunchflow: Liên kết với Lunch Flow
       link_provider: Liên kết với nhà cung cấp
       unlink_provider: Hủy liên kết với nhà cung cấp
-      change_simplefin_account: Thay đổi tài khoản SimpleFIN
       troubleshoot: Khắc phục sự cố
       enable: Bật tài khoản
       disable: Tắt tài khoản
@@ -65,7 +63,6 @@ vi:
         connected_entry: Liên kết tài khoản
         connected_entry_eu: Liên kết tài khoản EU
         link_with_provider: "Liên kết với %{provider}"
-        lunchflow_entry: Liên kết tài khoản Lunch Flow
         manual_entry: Nhập số dư tài khoản
         title: Bạn muốn thêm bằng cách nào?
       title: Bạn muốn thêm gì?

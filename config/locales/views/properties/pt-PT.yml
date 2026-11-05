@@ -22,9 +22,6 @@ pt-PT:
       subtype_prompt: Selecione o tipo de imóvel
       year_built: Ano de construção
       year_built_placeholder: '2000'
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
     new:
       title: Introduzir imóvel manualmente
       next: "Seguinte"

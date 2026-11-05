@@ -10,7 +10,7 @@ class ConfirmDialogTest < ApplicationSystemTestCase
 
   test "shows a provider merchant's name as text instead of rendering it" do
     name = %(<img src=x onerror="document.body.dataset.injected='yes'"> Coffee)
-    merchant = ProviderMerchant.create!(name: name, source: "plaid")
+    merchant = ProviderMerchant.create!(name: name, source: "synth")
     Transaction.joins(entry: :account).merge(@user.accessible_accounts).first.update!(merchant: merchant)
 
     visit family_merchants_path

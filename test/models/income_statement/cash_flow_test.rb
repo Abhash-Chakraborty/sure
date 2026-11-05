@@ -23,8 +23,6 @@ class IncomeStatement::CashFlowTest < ActiveSupport::TestCase
     create_transaction(account: @account, amount: -20, date: @month, kind: "loan_payment")
     create_transaction(account: @account, amount: 900, date: @month, kind: "cc_payment")
     create_transaction(account: @account, amount: 800, date: @month, excluded: true)
-    pending = create_transaction(account: @account, amount: 700, date: @month)
-    pending.entryable.update!(extra: { "simplefin" => { "pending" => true } })
     result = summary
     assert_equal "1000.0", result[:income]
     assert_equal "32.345", result[:spending]

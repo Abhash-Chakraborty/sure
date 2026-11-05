@@ -1,7 +1,0 @@
----
-zh-TW:
-  activerecord:
-    errors:
-      models:
-        simplefin_account:
-          no_balance: SimpleFin 帳戶必須有目前餘額或可用餘額

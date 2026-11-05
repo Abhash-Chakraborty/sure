@@ -100,9 +100,6 @@ ca:
         trend: Tendència
         unknown: Desconegut
         year_built: Any de construcció
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
     form_tabs:
       address: Adreça
       overview: Resum

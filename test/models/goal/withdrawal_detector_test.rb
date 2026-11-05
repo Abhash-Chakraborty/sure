@@ -109,42 +109,6 @@ class Goal::WithdrawalDetectorTest < ActiveSupport::TestCase
     assert_empty detect
   end
 
-  # A provisional charge can still be reversed, or replaced by its posted form.
-  # Attributing one leaves the goal consumed for a transaction that no longer
-  # exists, while the posted twin arrives unstamped and is offered all over.
-  test "ignores an outflow the provider has not posted yet" do
-    entry = outflow(1_200)
-    entry.entryable.update!(extra: { "simplefin" => { "pending" => true } })
-
-    assert_empty detect
-  end
-
-  test "still surfaces an outflow the provider has posted" do
-    entry = outflow(1_200)
-    entry.entryable.update!(extra: { "simplefin" => { "pending" => false } })
-
-    assert_equal [ entry.id ], detect.map(&:id)
-  end
-
-  # A flag PostgreSQL cannot cast to boolean used to raise and take the whole
-  # panel down, hiding the posted outflow beside it too.
-  test "ignores an outflow whose pending flag PostgreSQL cannot cast" do
-    posted = outflow(1_000)
-    outflow(1_200).entryable.update!(extra: { "simplefin" => { "pending" => "maybe" } })
-
-    assert_equal [ posted.id ], detect.map(&:id)
-  end
-
-  # Transaction#pending? calls "no" pending, so the detector must not offer it.
-  test "ignores an outflow whose pending flag is \"no\", as Transaction#pending? does" do
-    posted = outflow(1_000)
-    flagged = outflow(1_200)
-    flagged.entryable.update!(extra: { "simplefin" => { "pending" => "no" } })
-
-    assert flagged.entryable.pending?
-    assert_equal [ posted.id ], detect.map(&:id)
-  end
-
   private
     def detect(limit: 3)
       Goal::WithdrawalDetector.new(@goal).unattributed_outflows(limit: limit)

@@ -6,14 +6,12 @@ ca:
         success: Entrada eliminada correctament.
   accounts:
     account:
-      change_simplefin_account: Canvia el compte de SimpleFIN
       complete_setup: Completa la configuració
       default_label: Per defecte
       delete: Elimina el compte
       disable: Desactiva el compte
       edit: Edita
       enable: Activa el compte
-      link_lunchflow: Enllaça amb Lunch Flow
       link_provider: Enllaça amb proveïdor
       remove_default: Treu com a predeterminat
       set_default: Estableix com a predeterminat
@@ -82,7 +80,6 @@ ca:
         connected_entry: Enllaça el compte
         connected_entry_eu: Enllaça el compte de la UE
         link_with_provider: Enllaça amb %{provider}
-        lunchflow_entry: Enllaça compte de Lunch Flow
         manual_entry: Introdueix el saldo del compte
         title: Com vols afegir-lo?
       title: Què vols afegir?

@@ -55,9 +55,7 @@ class Holding::PortfolioSnapshotTest < ActiveSupport::TestCase
     create_trade(@aapl, account: @account, qty: 10, price: 100, date: 5.days.ago)
     create_trade(@msft, account: @account, qty: 5, price: 200, date: 5.days.ago)
 
-    coinstats_item = @account.family.coinstats_items.create!(name: "CoinStats", api_key: "test-key")
-    coinstats_account = coinstats_item.coinstats_accounts.create!(name: "Provider", currency: "USD")
-    account_provider = AccountProvider.create!(account: @account, provider: coinstats_account)
+    account_provider = link_provider!(@account)
 
     @account.holdings.create!(
       security: @aapl,
@@ -84,4 +82,13 @@ class Holding::PortfolioSnapshotTest < ActiveSupport::TestCase
     assert_equal 10, portfolio[@aapl.id]
     assert_equal 0, portfolio[@msft.id]
   end
+
+  private
+    # No provider account model is installed, so the link is a bare
+    # account_providers row (skipping the polymorphic presence validation).
+    # The code under test only reads holdings' account_provider_id.
+    def link_provider!(account)
+      AccountProvider.new(account: account, provider_type: "TestProviderAccount", provider_id: SecureRandom.uuid)
+        .tap { |link| link.save!(validate: false) }
+    end
 end

@@ -910,19 +910,12 @@ class Family::AutoTransferMatchableTest < ActiveSupport::TestCase
     end
 
     # Simulates a live provider connection so `Account#manual?` (and the SQL
-    # query's equivalent check) treats the account as linked. `AccountProvider`
-    # validates its polymorphic `provider` association is present, so this needs
-    # a real (if otherwise-unused) PlaidAccount row rather than an arbitrary id.
+    # query's equivalent check) treats the account as linked. No provider
+    # account model is installed, so this writes a bare account_providers row,
+    # skipping the polymorphic presence validation: both checks only ask
+    # whether a row exists, and nothing here loads its provider.
     def link_account!(account)
-      plaid_account = PlaidAccount.create!(
-        plaid_item: plaid_items(:one),
-        plaid_id: "acc_mock_#{SecureRandom.hex(6)}",
-        name: "Linked #{account.name}",
-        plaid_type: "depository",
-        currency: account.currency,
-        current_balance: 0
-      )
-      AccountProvider.create!(account: account, provider: plaid_account)
+      AccountProvider.insert!({ account_id: account.id, provider_type: "TestProviderAccount", provider_id: SecureRandom.uuid })
     end
 
     def candidate_pairs

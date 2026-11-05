@@ -1,5 +1,0 @@
----
-uk:
-  coinbase:
-    processor:
-      paid_via: "Сплачено через %{method}"

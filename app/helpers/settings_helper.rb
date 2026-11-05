@@ -51,104 +51,19 @@ module SettingsHelper
     render partial: "settings/section", locals: { title: title, subtitle: subtitle, content: content, collapsible: collapsible, open: open, auto_open_param: auto_open_param, status: status, meta: meta, actions: actions, badge: badge }
   end
 
+  # Status pill data for a provider row on the bank sync page. Registry-driven
+  # configurations are connected once configured; a family panel adds a
+  # `when "<key>"` branch returning sync_based_summary(key) once it has items.
   def provider_summary(provider_key)
     key = provider_key.to_s.downcase
 
     case key
-    when "plaid", "plaid_eu"
-      configured = @provider_configurations&.find { |c| c.provider_key.to_s.casecmp(key).zero? }&.configured?
+    when *Array(@provider_configurations).map { |c| c.provider_key.to_s.downcase }
+      configured = @provider_configurations.find { |c| c.provider_key.to_s.casecmp(key).zero? }&.configured?
       configured ? { status: :ok } : { status: :off }
-    when "akahu"
-      return { status: :off } unless @akahu_items&.any?
-      sync_based_summary(key)
-    when "up"
-      return { status: :off } unless @up_items&.any?
-      sync_based_summary(key)
-    when "monobank"
-      return { status: :off } unless @monobank_items&.any?
-      sync_based_summary(key)
-    when "fio"
-      return { status: :off } unless @fio_items&.any?
-      sync_based_summary(key)
-    when "simplefin"
-      return { status: :off } unless @simplefin_items&.any?
-      sync_based_summary(key)
-    when "lunchflow"
-      return { status: :off } unless @lunchflow_items&.any?
-      sync_based_summary(key)
-    when "enable_banking"
-      return { status: :off } unless @enable_banking_items&.any?
-      enable_banking_summary
-    when "truelayer"
-      return { status: :off } unless @truelayer_items&.any?
-      truelayer_summary
-    when "coinstats"
-      return { status: :off } unless @coinstats_items&.any?
-      sync_based_summary(key)
-    when "wise"
-      return { status: :off } unless @wise_items&.any?
-      sync_based_summary(key)
-    when "mercury"
-      return { status: :off } unless @mercury_items&.any?
-      sync_based_summary(key)
-    when "redbark"
-      return { status: :off } unless @redbark_items&.any?
-      sync_based_summary(key)
-    when "brex"
-      return { status: :off } unless @brex_items&.any?
-      sync_based_summary(key)
-    when "coinbase"
-      return { status: :off } unless @coinbase_items&.any?
-      sync_based_summary(key)
-    when "binance"
-      return { status: :off } unless @binance_items&.any?
-      sync_based_summary(key)
-    when "kraken"
-      return { status: :off } unless @kraken_items&.any?
-      sync_based_summary(key)
-    when "coinspot"
-      return { status: :off } unless @coinspot_items&.any?
-      sync_based_summary(key)
-    when "onchain_wallet"
-      return { status: :off } unless @onchain_wallet_items&.any?
-      sync_based_summary(key)
-    when "trading212"
-      return { status: :off } unless @trading212_items&.any?
-      sync_based_summary(key)
-    when "snaptrade"
-      configured_item = @snaptrade_items&.find(&:oauth_configured?)
-      return { status: :off } unless configured_item
-      sync_based_summary(key)
-    when "ibkr"
-      return { status: :off } unless @ibkr_items&.any?
-      sync_based_summary(key)
-    when "trade_republic"
-      return { status: :off } unless @trade_republic_items&.any?
-      trade_republic_summary
-    when "indexa_capital"
-      return { status: :off } unless @indexa_capital_items&.any?
-      sync_based_summary(key)
-    when "sophtron"
-      return { status: :off } unless @sophtron_items&.any?
-      sync_based_summary(key)
-    when "questrade"
-      return { status: :off } unless @questrade_items&.any?
-      sync_based_summary(key)
     else
       { status: :off }
     end
-  end
-
-  def financekit_provider_summary(connections)
-    return { status: :off } if connections.empty?
-
-    items = connections.map { |connection| connection[:item] }
-    count = connections.flat_map { |connection| connection[:accounts].map(&:id) }.uniq.size
-    {
-      status: items.any? { |item| item.status == "repair_required" } ? :warn : :ok,
-      meta: t("settings.providers.financekit.linked_accounts", count: count),
-      last_synced_at: items.filter_map(&:last_imported_at).max
-    }
   end
 
   def settings_nav_footer
@@ -249,83 +164,6 @@ module SettingsHelper
       end
 
       base.merge(last_synced_at: last_synced_at)
-    end
-
-    def enable_banking_summary
-      health = @provider_sync_health&.dig("enable_banking") || {}
-      last_synced_at = health[:last_synced_at]
-
-      return { status: :err, meta: t("settings.providers.meta.sync_error"), last_synced_at: nil } if health[:error]
-
-      valid_items = @enable_banking_items&.reject(&:needs_authorization?) || []
-
-      # All items have expired, missing or rejected sessions — need re-authorization
-      if valid_items.empty?
-        return { status: :warn, meta: t("settings.providers.meta.reconsent_required"), last_synced_at: last_synced_at }
-      end
-
-      expiring = valid_items.find do |item|
-        item.session_expires_at.present? && item.session_expires_at < 7.days.from_now
-      end
-
-      if expiring
-        days = [ ((expiring.session_expires_at - Time.current) / 1.day).ceil, 1 ].max
-        return { status: :warn, meta: t("settings.providers.meta.reconsent_needed", count: days), last_synced_at: last_synced_at }
-      end
-
-      return { status: :warn, meta: t("settings.providers.meta.no_recent_sync"), last_synced_at: last_synced_at } if health[:stale]
-
-      if last_synced_at.present?
-        { status: :ok, meta: t("settings.providers.meta.last_synced", time: concise_time_ago(last_synced_at)), last_synced_at: last_synced_at }
-      else
-        { status: :ok, last_synced_at: nil }
-      end
-    end
-
-    # Like Enable Banking, the row warns before a session ends and once a
-    # connection has to log in again. A Trade Republic login lasts only
-    # 24 hours, so the warning starts two hours before the end. A login
-    # comes first: an ended session no longer syncs, so a failed last sync
-    # would otherwise show until the next login.
-    def trade_republic_summary
-      summary = sync_based_summary("trade_republic")
-
-      if @trade_republic_items.any?(&:needs_login?)
-        return summary.merge(status: :warn, meta: t("settings.providers.meta.login_required"))
-      end
-      return summary if summary[:status] == :err
-
-      expiring = @trade_republic_items
-        .select { |item| item.ready_for_sync? && item.session_expires_at.present? && item.session_expires_at < 2.hours.from_now }
-        .min_by(&:session_expires_at)
-      return summary unless expiring
-
-      summary.merge(status: :warn, meta: trade_republic_session_expiry("settings.providers.meta.login_expires_soon", expiring.session_expires_at))
-    end
-
-    def truelayer_summary
-      health = @provider_sync_health&.dig("truelayer") || {}
-      last_synced_at = health[:last_synced_at]
-
-      return { status: :err, meta: t("settings.providers.meta.sync_error"), last_synced_at: nil } if health[:error]
-
-      connected = @truelayer_items.select(&:connected?)
-      return { status: :ok, last_synced_at: nil } if connected.empty?
-      return { status: :warn, meta: t("settings.providers.meta.reconsent_required"), last_synced_at: last_synced_at } if connected.any?(&:requires_update?)
-
-      expiring = connected.select { |item| item.consent_expiring_soon?(within: 7.days) }.min_by(&:consent_expires_at)
-      if expiring
-        days = [ ((expiring.consent_expires_at - Time.current) / 1.day).ceil, 1 ].max
-        return { status: :warn, meta: t("settings.providers.meta.reconsent_needed", count: days), last_synced_at: last_synced_at }
-      end
-
-      return { status: :warn, meta: t("settings.providers.meta.no_recent_sync"), last_synced_at: last_synced_at } if health[:stale]
-
-      if last_synced_at.present?
-        { status: :ok, meta: t("settings.providers.meta.last_synced", time: concise_time_ago(last_synced_at)), last_synced_at: last_synced_at }
-      else
-        { status: :ok, last_synced_at: nil }
-      end
     end
 
     def not_self_hosted?

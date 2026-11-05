@@ -18,7 +18,7 @@ module Security::Provided
       providers.first
     end
 
-    # Get a specific provider by key name (e.g., "finnhub", "twelve_data")
+    # Get a specific provider by key name (e.g., "yahoo_finance", "mfapi")
     # Returns nil if the provider is disabled in settings or not configured.
     def provider_for(name)
       return nil if name.blank?
@@ -174,7 +174,7 @@ module Security::Provided
   # Falls back to the first enabled provider only when no specific provider
   # was ever assigned. When an assigned provider becomes unavailable, returns
   # nil so the security is skipped rather than queried against an incompatible
-  # provider (e.g. MFAPI scheme codes sent to TwelveData).
+  # provider (e.g. MFAPI scheme codes sent to Yahoo Finance).
   def price_data_provider
     if price_provider.present?
       assigned = self.class.provider_for(price_provider)
@@ -287,46 +287,6 @@ module Security::Provided
         )
       end
     end
-
-    # Brand logo, sourced independently of the price provider, so a security
-    # priced by a logo-less provider (e.g. MOEX/ISS) still gets a real logo.
-    # Runs after metadata so it never short-circuits website_url backfill.
-    import_brand_logo(clear_cache: clear_cache)
-  end
-
-  # Enriches the security with a brand logo from a dedicated logo provider
-  # (T-Invest), independent of which provider supplies prices. No-op when the
-  # logo is already set, for crypto (own logo path), or when no logo provider /
-  # token is configured. Runs every details import while the logo is missing.
-  def import_brand_logo(clear_cache: false)
-    return if crypto?
-    return if logo_url.present? && !clear_cache
-
-    provider = brand_logo_provider
-    return unless provider
-
-    response = provider.fetch_security_info(symbol: ticker, exchange_operating_mic: exchange_operating_mic)
-    return unless response.success? && response.data.logo_url.present?
-
-    update(logo_url: response.data.logo_url)
-  rescue => e
-    DebugLogEntry.capture(
-      category: "security_metadata_fetch",
-      level: "warn",
-      message: "Brand logo fetch failed",
-      source: self.class.name,
-      provider: brand_logo_provider,
-      metadata: { security_id: self.id, ticker: ticker, provider_error: e.message }
-    )
-  end
-
-  # The provider consulted for brand logos regardless of price provider. Returns
-  # nil unless a T-Invest token is configured. Uses the class-level lookup so it
-  # doesn't depend on (or interfere with) per-instance Registry expectations.
-  def brand_logo_provider
-    Provider::Registry.get_provider(:tinkoff_invest)
-  rescue Provider::Registry::Error
-    nil
   end
 
   def import_provider_prices(start_date:, end_date:, clear_cache: false)

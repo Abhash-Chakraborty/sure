@@ -89,55 +89,21 @@ class ConfigurationHealthTest < ActiveSupport::TestCase
 
   test "selected market providers use the existing ENV precedence and no live checks" do
     Setting.stubs(:securities_providers).returns("yahoo_finance")
-    Setting.stubs(:twelve_data_api_key).returns("database-key")
-    Provider::TwelveData.expects(:new).with("environment-key").returns(stub("provider without probe methods"))
+    Provider::Mfapi.any_instance.expects(:healthy?).never
 
-    ClimateControl.modify("SECURITIES_PROVIDERS" => "twelve_data", "TWELVE_DATA_API_KEY" => "environment-key") do
+    ClimateControl.modify("SECURITIES_PROVIDERS" => "mfapi") do
       check = ConfigurationHealth.new.securities
       assert_equal :configured, check.status
-      assert_equal [ :twelve_data ], check.providers.map(&:key)
-      assert_no_match(/environment-key|database-key/, check.inspect)
-    end
-  end
-
-  test "blank environment API key falls back to the database key" do
-    Setting.stubs(:enabled_securities_providers).returns([ "twelve_data" ])
-    Setting.stubs(:twelve_data_api_key).returns("database-key")
-    Provider::TwelveData.expects(:new).with("database-key").returns(stub("provider"))
-
-    ClimateControl.modify("TWELVE_DATA_API_KEY" => "") do
-      assert_equal :configured, ConfigurationHealth.new.securities.status
+      assert_equal [ :mfapi ], check.providers.map(&:key)
     end
   end
 
   test "keyless public providers are configured without API keys" do
-    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance", "mfapi", "binance_public", "moex_public" ])
+    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance", "mfapi", "binance_public" ])
     Provider::YahooFinance.any_instance.expects(:health_status).never
     Provider::YahooFinance.any_instance.expects(:healthy?).never
 
     assert_equal :configured, ConfigurationHealth.new.securities.status
-  end
-
-  test "missing selected API keys are not configured" do
-    Setting.stubs(:enabled_securities_providers).returns([ "twelve_data" ])
-    Setting.stubs(:twelve_data_api_key).returns(nil)
-
-    ClimateControl.modify("TWELVE_DATA_API_KEY" => nil) do
-      check = ConfigurationHealth.new.securities
-      assert_equal :not_configured, check.status
-      assert_equal :not_configured, check.providers.first.status
-    end
-  end
-
-  test "mixed providers identify incomplete configuration without hiding the working selection" do
-    Setting.stubs(:enabled_securities_providers).returns([ "yahoo_finance", "twelve_data" ])
-    Setting.stubs(:twelve_data_api_key).returns(nil)
-
-    ClimateControl.modify("TWELVE_DATA_API_KEY" => nil) do
-      check = ConfigurationHealth.new.securities
-      assert_equal :incomplete, check.status
-      assert_equal [ :configured, :not_configured ], check.providers.map(&:status)
-    end
   end
 
   test "no enabled market provider is disabled" do

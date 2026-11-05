@@ -33,7 +33,7 @@
     <% if account.property.avm_last_synced_on.present? %>
       <p class="text-sm text-secondary">
         <%= t(".valuation_source",
-              provider: t("properties.avm_providers.#{account.property.avm_provider}"),
+              provider: t("properties.avm_providers.#{account.property.avm_provider}", default: account.property.avm_provider.to_s.titleize),
               date: l(account.property.avm_last_synced_on, format: :long)) %>
       </p>
     <% end %>

@@ -2,17 +2,6 @@
 fr:
   settings:
     hostings:
-      alpha_vantage_settings:
-        description: Saisissez la clé API d'Alpha Vantage. Prend en charge les ETF de l'UE sur la Bourse de Londres, XETRA et d'autres places boursières.
-        env_configured_message: Configuré avec succès via la variable d'environnement ALPHA_VANTAGE_API_KEY.
-        label: Clé API
-        no_health_check_note: La vérification de l'état de la connexion est indisponible pour ce fournisseur en raison de la limite stricte de taux.
-        placeholder: Saisissez votre clé API Alpha Vantage ici
-        rate_limit_warning: L'offre gratuite d'Alpha Vantage est limitée à 25 appels d'API par jour. Idéal comme fournisseur supplémentaire pour les ETF de l'UE non disponibles chez d'autres fournisseurs.
-        show_details: "(afficher les détails)"
-        step_1_html: Visitez <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener noreferrer" class="underline">alphavantage.co</a> pour obtenir votre clé API gratuite.
-        step_2: Copiez la clé API et collez-la ci-dessous.
-        title: Alpha Vantage
       anthropic_settings:
         access_token_label: Clé API
         access_token_placeholder: Saisissez votre clé API Anthropic
@@ -105,13 +94,6 @@ fr:
         shadow_results_empty: Aucune comparaison enregistrée pour l'instant. Définissez un taux de comparaison supérieur à 0 et lancez une catégorisation pour en collecter.
         shadow_results_heading: Comparaison en arrière-plan
         shadow_results_summary: "%{agreement} %% d'accord sur %{count} transactions échantillonnées."
-      chimnie_settings:
-        description: Saisissez votre clé API Chimnie pour estimer les biens résidentiels au Royaume-Uni à partir de leur UPRN. Créez une clé gratuite sur dashboard.chimnie.com (l'inscription exige une adresse e-mail professionnelle ou sur un domaine personnalisé ; Gmail, Outlook et les adresses similaires ne sont pas acceptées). Les estimations par UPRN sont gratuites et actualisées chaque mois ; Sure les limite à 1 000 requêtes par mois, ce que vous pouvez modifier avec la variable d'environnement CHIMNIE_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configuré avec succès via la variable d'environnement CHIMNIE_API_KEY.
-        label: Clé API
-        placeholder: Saisissez votre clé API Chimnie ici
-        title: Chimnie
-        usage: "%{used} sur %{limit} requêtes mensuelles utilisées"
       clear_cache:
         cache_cleared: Le cache de données a été effacé. Cela peut prendre quelques instants.
       demo_refresh_settings:
@@ -126,17 +108,6 @@ fr:
         not_authorized: Vous n'êtes pas autorisé à effectuer cette action
       ensure_super_admin_for_onboarding:
         not_authorized: Vous n'êtes pas autorisé à effectuer cette action
-      eodhd_settings:
-        description: Saisissez le token API fourni par EODHD. Supporte les ETF européens sur LSE, XETRA et d'autres places boursières internationales.
-        env_configured_message: Configuré avec succès via la variable d'environnement EODHD_API_KEY.
-        label: Token API
-        placeholder: Entrez votre token API EODHD ici
-        rate_limit_warning: Le forfait gratuit EODHD est limité à 20 appels API par jour. À utiliser de préférence comme fournisseur complémentaire pour les ETF européens non disponibles chez d'autres fournisseurs.
-        show_details: "(afficher les détails)"
-        step_1_html: Visitez <a href="https://eodhd.com/register" target="_blank" rel="noopener noreferrer" class="underline">eodhd.com</a> et créez un compte gratuit.
-        step_2_html: Accédez à votre <a href="https://eodhd.com/cp/dashboard" target="_blank" rel="noopener noreferrer" class="underline">Tableau de bord</a> pour trouver votre token API.
-        step_3: Copiez votre token API et collez-le ci-dessous.
-        title: EODHD
       invite_code_settings:
         default_family_description: Placer les nouveaux utilisateurs dans cette famille/groupe uniquement s'ils n'ont pas d'invitation.
         default_family_none: Aucune (créer une nouvelle famille)
@@ -173,16 +144,6 @@ fr:
         title: Fournisseur d'IA
         max_items_per_call_help: "Limite supérieure pour les lots d'auto-catégorisation / détection de marchand. Par défaut : 25. Avec les fournisseurs compatibles OpenAI, les lots plus grands sont automatiquement découpés pour tenir dans la fenêtre de contexte."
         max_items_per_call_label: Nombre maximum d'éléments par lot (Optionnel)
-      mansa_settings:
-        description: Saisissez la clé API fournie par Mansa API. Couvre 20 bourses africaines, dont le NGX (Bourse du Nigeria), la JSE, la NSE (Kenya), la GSE (Ghana) et la BRVM, dont plusieurs ne sont prises en charge par aucun autre fournisseur proposé ici.
-        env_configured_message: Configuré avec succès via la variable d'environnement MANSA_API_KEY.
-        label: Clé API
-        placeholder: Saisissez votre clé API Mansa ici
-        rate_limit_warning: 'L''offre gratuite de Mansa est limitée à 100 appels API par jour et ne fournit que les cotations actuelles : les cours historiques nécessitent un forfait payant.'
-        show_details: "(afficher les détails)"
-        step_1_html: Rendez-vous sur <a href="https://mansaapi.com" target="_blank" rel="noopener noreferrer" class="underline">mansaapi.com</a> et obtenez votre clé API gratuite (aucune carte requise).
-        step_2: Copiez votre clé API et collez-la ci-dessous.
-        title: Mansa
       not_authorized: Vous n'êtes pas autorisé(e) à effectuer cette action
       openai_settings:
         access_token_label: Jeton d'accès
@@ -225,42 +186,14 @@ fr:
         exchange_rate_provider_label: Fournisseur de taux de change
         exchange_rate_title: Fournisseur de taux de change
         mfapi_hint: gratuit, aucune clé API -- fonds communs indiens uniquement
-        moex_public_hint: gratuit, pas de clé API -- actions, fonds et obligations russes (MOEX), y compris change RUB
         providers:
-          alpha_vantage: Alpha Vantage
           binance_public: Binance
-          eodhd: EODHD
           frankfurter: Frankfurter
-          mansa: Mansa
           mfapi: MFAPI.in
-          moex_public: MOEX
-          tiingo: Tiingo
-          tinkoff_invest: T-Invest (T-Bank)
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-        requires_api_key: nécessite une clé API
-        requires_api_key_alpha_vantage: nécessite une clé API, limite de 25 appels/jour
-        requires_api_key_eodhd: nécessite une clé API, limite de 20 appels/jour
-        requires_api_key_mansa: "nécessite une clé API, offre gratuite de 100 appels/jour (bourses africaines : NGX, JSE, NSE, GSE, BRVM, etc.)"
         securities_description: Activez un ou plusieurs fournisseurs pour récupérer les cours des actions, ETF et fonds communs. Lors d'une recherche, tous les fournisseurs activés sont interrogés et les résultats sont fusionnés.
         securities_title: Fournisseurs de titres
-        tinkoff_invest_hint: requiert un jeton en lecture seule -- cours des actions/fonds/obligations russes + logos des marques
-        twelve_data_hint: nécessite une clé API, 800 crédits/jour
         yahoo_finance_hint: gratuit, aucune clé API requise
-      realie_settings:
-        description: Saisissez votre clé d'API Realie pour consulter les caractéristiques et les estimations de valeur des biens immobiliers américains lors de l'ajout d'un bien. L'offre gratuite est limitée à 25 requêtes d'API par mois, partagées entre les recherches de biens et les actualisations quotidiennes de valorisation. Sur une offre payante, relevez le plafond avec la variable d'environnement REALIE_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configuré avec succès via la variable d'environnement REALIE_API_KEY.
-        label: Clé d'API
-        placeholder: Saisissez ici votre clé d'API Realie
-        title: Realie
-        usage: "%{used} sur %{limit} requêtes mensuelles utilisées"
-      rentcast_settings:
-        description: Saisissez votre clé d'API RentCast pour consulter les caractéristiques et les estimations de valeur des biens immobiliers américains lors de l'ajout d'un bien. L'offre gratuite est limitée à 50 requêtes d'API par mois, partagées entre les recherches de biens et les actualisations quotidiennes de valorisation. Sur une offre payante, relevez le plafond avec la variable d'environnement RENTCAST_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configuré avec succès via la variable d'environnement RENTCAST_API_KEY.
-        label: Clé d'API
-        placeholder: Saisissez ici votre clé d'API RentCast
-        title: RentCast
-        usage: "%{used} sur %{limit} requêtes mensuelles utilisées"
       show:
         ai_assistant: Assistant IA
         clear_cache: Effacer le cache de données
@@ -274,7 +207,6 @@ fr:
         general: Paramètres généraux
         instance_settings_restricted: 'Les identifiants des fournisseurs, la connexion IA partagée et les paramètres de synchronisation s''appliquent à toutes les familles de cette instance : seul un super administrateur peut donc les modifier. L''assistant utilisé par votre famille reste défini par famille. Une personne ayant accès au serveur peut promouvoir un utilisateur super administrateur ; le guide d''auto-hébergement Docker donne la commande dans ses notes de mise à niveau.'
         invites: Codes d'invitation
-        property_valuation_providers: Fournisseurs de valorisation immobilière
         sync_settings: Paramètres de synchronisation
         title: Auto-hébergement
       sync_auto_sync_scheduler!:
@@ -284,50 +216,10 @@ fr:
         auto_sync_label: Activer la synchronisation automatique
         auto_sync_time_description: Spécifiez l'heure à laquelle la synchronisation automatique doit se produire.
         auto_sync_time_label: Heure de synchronisation (HH:MM)
-        env_configured_message: Ce paramètre est désactivé car une variable d'environnement du fournisseur (SIMPLEFIN_INCLUDE_PENDING ou PLAID_INCLUDE_PENDING) est définie. Supprimez-la pour activer ce paramètre.
-        include_pending_description: Lorsque cette option est activée, les transactions en attente (non confirmées) seront importées et automatiquement réconciliées lors de leur validation. Désactivez si votre banque fournit des données de transactions en attente peu fiables.
-        include_pending_label: Inclure les transactions en attente
         market_data_sync_description: Lorsque cette option est activée, les cours des titres sont importés automatiquement une fois par jour (du lundi au vendredi) à l'heure indiquée.
         market_data_sync_label: Activer l'import quotidien des données de marché
         market_data_sync_time_description: Indiquez l'heure à laquelle l'import quotidien des cours doit s'exécuter, par exemple peu après la clôture de votre place boursière principale.
         market_data_sync_time_label: Heure d'import des données de marché (HH:MM)
-      tiingo_settings:
-        description: Saisissez le token API fourni par Tiingo. Le forfait gratuit supporte 50 symboles uniques par heure avec plus de 30 ans de données historiques.
-        env_configured_message: Configuré avec succès via la variable d'environnement TIINGO_API_KEY.
-        label: Token API
-        placeholder: Entrez votre token API Tiingo ici
-        show_details: "(afficher les détails)"
-        step_1_html: Visitez <a href="https://www.tiingo.com" target="_blank" rel="noopener noreferrer" class="underline">tiingo.com</a> et créez un compte gratuit.
-        step_2_html: Accédez à la page <a href="https://www.tiingo.com/account/api/token" target="_blank" rel="noopener noreferrer" class="underline">Token API</a>.
-        step_3: Copiez votre token API et collez-le ci-dessous.
-        title: Tiingo
-      tinkoff_invest_settings:
-        description: Saisissez un jeton API T-Invest en lecture seule. Utilisé pour récupérer les logos de marque des titres (y compris les fonds et obligations, même lorsque MOEX les évalue) et, lorsqu'il est activé ci-dessus, les prix des instruments russes.
-        env_configured_message: Configuré avec succès via la variable d'environnement TINKOFF_INVEST_API_KEY.
-        label: Jeton API
-        moex_only_notice: Non activé pour les cours ci-dessus. T-Invest sert à récupérer les logos de marque de tous vos titres dès qu'un jeton est configuré, indépendamment de la case à cocher ci-dessus.
-        placeholder: Saisissez votre jeton API T-Invest ici
-        show_details: "(afficher les détails)"
-        step_1: Ouvrez T-Bank investissements, puis Paramètres, puis jetons API (nécessite un compte de courtage T-Bank ouvert).
-        step_2: Créez un jeton avec un accès en lecture seule.
-        step_3: Copiez le jeton et collez-le ci-dessous.
-        title: T-Invest (T-Bank)
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} appels API quotidiens utilisés (%{percentage})"
-        description: Saisissez la clé API fournie par Twelve Data
-        env_configured_message: Configurée avec succès via la variable d'environnement TWELVE_DATA_API_KEY.
-        label: Clé API
-        placeholder: Entrez votre clé API ici
-        plan: Forfait %{plan}
-        plan_upgrade_warning_description: Les tickers suivants de votre portefeuille ne peuvent pas synchroniser leurs cours avec votre forfait Twelve Data actuel.
-        plan_upgrade_warning_title: Certains tickers nécessitent un forfait payant
-        requires_plan: nécessite le forfait %{plan}
-        show_details: "(afficher les détails)"
-        step_1_html: Visitez <a href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer" class="underline">twelvedata.com</a> et créez un compte Twelve Data Developer gratuit.
-        step_2_html: Accédez à la page <a href="https://twelvedata.com/account/api-keys" target="_blank" rel="noopener noreferrer" class="underline">Clés API</a>.
-        step_3: Révélez votre clé secrète et collez-la ci-dessous.
-        title: Twelve Data
-        view_pricing: Voir les tarifs Twelve Data
       update:
         anthropic_model_required_for_base_url: Le modèle Anthropic est requis lorsqu'une URL de base personnalisée est définie.
         failure: Valeur de paramètre invalide

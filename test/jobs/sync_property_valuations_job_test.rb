@@ -1,7 +1,37 @@
 require "test_helper"
 
 class SyncPropertyValuationsJobTest < ActiveSupport::TestCase
+  # No AVM provider ships any more. These stand-ins keep the generic refresh job
+  # covered with the capabilities the removed providers had: "rentcast" (US,
+  # takes the living area), "realie" (US, address only) and "chimnie" (UK, by
+  # UPRN, refreshed monthly).
+  class FakeAvm < Provider
+    include Provider::PropertyValuationConcept
+
+    RateLimitError = Class.new(Provider::Error)
+  end
+
+  class FakeAreaAvm < FakeAvm
+    def self.accepts_square_footage? = true
+  end
+
+  class FakeUkAvm < FakeAvm
+    def self.valuation_currency = "GBP"
+    def self.supported_country = "GB"
+    def self.requires_external_id? = true
+    def self.required_address_fields = %i[line1 postal_code]
+    def self.refresh_interval = 1.month
+  end
+
+  AVM_PROVIDERS = { "rentcast" => FakeAreaAvm, "realie" => FakeAvm, "chimnie" => FakeUkAvm }.freeze
+
   setup do
+    Provider::PropertyValuationConcept.stubs(:provider_class).returns(nil)
+    AVM_PROVIDERS.each do |key, provider_class|
+      Provider::PropertyValuationConcept.stubs(:provider_class).with(key).returns(provider_class)
+    end
+    Provider::Registry.any_instance.stubs(:available_providers).returns(AVM_PROVIDERS.keys.map(&:to_sym))
+
     @account = accounts(:property)
     @property = @account.property
     @property.update!(avm_provider: "rentcast")
@@ -34,7 +64,7 @@ class SyncPropertyValuationsJobTest < ActiveSupport::TestCase
 
     assert_equal Date.current, @property.reload.avm_last_synced_on
     assert_equal 600_000, @account.reload.balance
-    assert_equal "RentCast valuation", @account.entries.valuations.find_by(date: Date.current).name
+    assert_equal "Rentcast valuation", @account.entries.valuations.find_by(date: Date.current).name
   end
 
   def expect_rentcast_lookup(params_matcher)
@@ -353,7 +383,7 @@ class SyncPropertyValuationsJobTest < ActiveSupport::TestCase
 
     provider = stub_chimnie_provider
     provider.expects(:fetch_property_valuation).once.returns(
-      Provider::Response.new(success?: false, data: nil, error: Provider::Chimnie::RateLimitError.new("Chimnie rate limit exceeded"))
+      Provider::Response.new(success?: false, data: nil, error: FakeUkAvm::RateLimitError.new("Chimnie rate limit exceeded"))
     )
 
     assert_difference "DebugLogEntry.count" => 1 do

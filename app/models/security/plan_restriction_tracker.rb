@@ -11,9 +11,8 @@ module Security::PlanRestrictionTracker
   CACHE_EXPIRY = 7.days
 
   # Map provider names to their classes for plan detection
-  PROVIDER_CLASSES = {
-    "TwelveData" => Provider::TwelveData
-  }.freeze
+  # (e.g. { "SomeProvider" => Provider::SomeProvider }); none ship today.
+  PROVIDER_CLASSES = {}.freeze
 
   class_methods do
     # Records that a security requires a higher plan to fetch data

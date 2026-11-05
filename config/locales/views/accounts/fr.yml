@@ -6,7 +6,6 @@ fr:
         success: Entrée supprimée avec succès.
   accounts:
     account:
-      change_simplefin_account: Changer le compte SimpleFIN
       complete_setup: Configuration complète
       default_label: Par défaut
       delete: Supprimer le compte
@@ -16,7 +15,6 @@ fr:
       exclude_from_reports: Exclure de tous les rapports
       excluded_from_reports_indicator: Exclu des rapports
       include_in_reports: Inclure dans les rapports
-      link_lunchflow: Lier avec Lunch Flow
       link_provider: Lier avec un fournisseur
       remove_default: Retirer par défaut
       set_default: Définir par défaut
@@ -34,7 +32,6 @@ fr:
       warning_no_sync: Le compte ne se synchronisera plus automatiquement avec votre fournisseur
       warning_title: Ce que cela signifie
       warning_transactions_kept: Toutes les transactions et soldes existants seront conservés
-      warning_wallet_connection: Tous les comptes de cette connexion Apple Wallet seront dissociés. Leurs transactions et soldes seront conservés. Vous pourrez vous reconnecter depuis l'app iOS Sure en configurant à nouveau Wallet.
     create:
       success: Compte %{type} créé
     destroy:
@@ -63,9 +60,6 @@ fr:
     index:
       accounts: Comptes
       cancel_sync: Annuler la synchronisation
-      financekit_accounts:
-        description: Gérez les connexions Apple Wallet et leur synchronisation dans l'app iOS Sure.
-        title: Apple Wallet
       manual_accounts:
         other_accounts: Autres comptes
       new_account: Nouveau compte
@@ -82,7 +76,6 @@ fr:
         connected_entry: Lier un compte
         connected_entry_eu: Lier un compte européen
         link_with_provider: Lier avec %{provider}
-        lunchflow_entry: Lier un compte Lunch Flow
         manual_entry: Saisir le solde du compte
         title: Comment voulez-vous l'ajouter ?
       title: Que voulez-vous ajouter ?

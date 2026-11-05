@@ -144,21 +144,6 @@ class Assistant::Function::GetTransactionsTest < ActiveSupport::TestCase
     assert_equal @transaction.entry.id, row[:entry_id]
   end
 
-  test "flags a pending transaction and stays silent on a settled one" do
-    @transaction.update!(extra: { "simplefin" => { "pending" => true } })
-
-    result = @function.call("search" => @transaction.entry.name)
-    row = result[:transactions].find { |item| item[:id] == @transaction.id }
-
-    assert_equal true, row[:pending]
-
-    @transaction.update!(extra: {})
-    settled = @function.call("search" => @transaction.entry.name)
-      .fetch(:transactions).find { |item| item[:id] == @transaction.id }
-
-    assert_not settled.key?(:pending), "an absent key must mean not pending"
-  end
-
   test "names the account on the other side of a transfer" do
     outflow_entry = Entry.create!(
       account: accounts(:depository),

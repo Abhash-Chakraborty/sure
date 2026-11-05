@@ -175,9 +175,9 @@ class SettingTest < ActiveSupport::TestCase
     Setting.llm_provider = original
   end
 
-  test "enabled_securities_providers falls back to twelve_data when nothing is configured" do
+  test "enabled_securities_providers falls back to yahoo_finance when nothing is configured" do
     with_env_overrides("SECURITIES_PROVIDERS" => nil, "SECURITIES_PROVIDER" => nil) do
-      assert_equal [ "twelve_data" ], Setting.enabled_securities_providers
+      assert_equal [ "yahoo_finance" ], Setting.enabled_securities_providers
     end
   end
 
@@ -197,6 +197,6 @@ class SettingTest < ActiveSupport::TestCase
     # back the just-deleted blank override instead of falling through to
     # the field's default.
     Setting.securities_providers = original_providers.presence || ""
-    Setting.securities_provider = original_provider.presence || "twelve_data"
+    Setting.securities_provider = original_provider.presence || "yahoo_finance"
   end
 end

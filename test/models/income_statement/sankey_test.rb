@@ -78,8 +78,6 @@ class IncomeStatement::SankeyTest < ActiveSupport::TestCase
     transaction(-100, @parent)
     create_transaction(account: @account, amount: 900, date: @month, excluded: true)
     create_transaction(account: @account, amount: 800, date: @month, kind: "cc_payment")
-    pending = create_transaction(account: @account, amount: 700, date: @month)
-    pending.entryable.update!(extra: { "simplefin" => { "pending" => true } })
     create_transaction(account: accounts(:depository), amount: 600, date: @month)
     result = graph
     assert_equal "12.345", result[:spending]

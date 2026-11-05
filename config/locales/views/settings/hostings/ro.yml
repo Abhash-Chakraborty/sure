@@ -48,14 +48,6 @@ ro:
         status_inactive: Conexiunea Yahoo Finance a eșuat
         connection_failed: Nu se poate conecta la Yahoo Finance
         troubleshooting: Verifică-ți conexiunea la internet și setările firewall-ului. Yahoo Finance poate fi temporar indisponibil.
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} apeluri API zilnice utilizate (%{percentage})"
-        description: Introdu cheia API furnizată de Twelve Data
-        env_configured_message: Configurat cu succes prin variabila de mediu TWELVE_DATA_API_KEY.
-        label: Cheie API
-        placeholder: Introdu cheia ta API aici
-        plan: "planul %{plan}"
-        title: Twelve Data
       update:
         failure: Valoare setare invalidă
         success: Setări actualizate

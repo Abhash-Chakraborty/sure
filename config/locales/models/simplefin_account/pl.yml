@@ -1,7 +1,0 @@
----
-pl:
-  activerecord:
-    errors:
-      models:
-        simplefin_account:
-          no_balance: Konto SimpleFin musi mieć saldo bieżące lub dostępne

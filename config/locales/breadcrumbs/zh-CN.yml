@@ -10,8 +10,6 @@ zh-CN:
     appearance: 外观
     appearances: 外观
     bank_sync: 银行同步
-    binance_items: Binance
-    brex_items: Brex
     budget_categories: 预算分类
     budgets: 预算
     categories: 分类
@@ -19,15 +17,12 @@ zh-CN:
     changelog: 更新日志
     chats: 聊天
     classifier: 分类器
-    coinbase_items: Coinbase
-    coinstats_items: CoinStats
     credit_cards: 信用卡
     cryptos: 加密资产
     dashboard: 仪表盘
     debug: 调试
     debugs: 调试
     depositories: 现金账户
-    enable_banking_items: Enable Banking
     exports: 导出
     family_exports: 导出
     family_merchants: 商户
@@ -36,32 +31,25 @@ zh-CN:
     holdings: 持仓
     home: 主页
     hostings: 自托管
-    ibkr_items: Interactive Brokers
     impersonation_sessions: 模拟会话
     imports: 导入
-    indexa_capital_items: Indexa Capital
     intro: 介绍
     investments: 投资
     invitations: 邀请
     invite_codes: 邀请码
-    kraken_items: Kraken
     llm_usage: LLM 用量
     llm_usages: LLM 用量
     loans: 贷款
-    lunchflow_items: Lunch Flow
     mcp: MCP 服务器
     merchants: 商户
-    mercury_items: Mercury
     messages: 消息
     mfa: 双重验证
-    monobank_items: Monobank
     oidc_accounts: OIDC 账户
     onboardings: 入门
     other_assets: 其他资产
     other_liabilities: 其他负债
     payments: 付款
     pending_duplicate_merges: 重复项审核
-    plaid_items: Plaid
     plan: 计划
     preferences: 偏好设置
     profile: 个人资料
@@ -69,7 +57,6 @@ zh-CN:
     properties: 房产
     providers: 提供商
     recurring_transactions: 循环交易
-    redbark_items: Redbark
     registrations: 注册
     reports: 报表
     rules: 规则
@@ -77,9 +64,6 @@ zh-CN:
     security: 证券
     self_hosting: 自托管
     sessions: 登录
-    simplefin_items: SimpleFIN
-    snaptrade_items: SnapTrade
-    sophtron_items: Sophtron
     splits: 拆分
     sso_identities: SSO 连接
     sso_providers: SSO 提供商

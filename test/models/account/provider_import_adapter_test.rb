@@ -755,37 +755,14 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
     assert_equal "security is required", exception.message
   end
 
-  test "stores account_provider_id when importing holding" do
-    investment_account = accounts(:investment)
-    adapter = Account::ProviderImportAdapter.new(investment_account)
-    security = securities(:aapl)
-    account_provider = AccountProvider.create!(
-      account: investment_account,
-      provider: plaid_accounts(:one)
-    )
-
-    holding = adapter.import_holding(
-      security: security,
-      quantity: 10,
-      amount: 1500,
-      currency: "USD",
-      date: Date.today - 10.days,
-      price: 150,
-      source: "plaid",
-      account_provider_id: account_provider.id
-    )
-
-    assert_equal account_provider.id, holding.account_provider_id
-  end
-
   test "carries a remapped security forward to the next day's holding" do
-    account, adapter, account_provider = provider_holding_setup
+    account, adapter = provider_holding_setup
     reported = Security.create!(ticker: "RPTD", name: "Reported Fund")
     chosen = Security.create!(ticker: "CHSN", name: "Chosen Fund")
     first_day = 20.days.ago.to_date
 
-    import_daily_holding(adapter, account_provider, reported, first_day).remap_security!(chosen)
-    next_day = import_daily_holding(adapter, account_provider, reported, first_day + 1)
+    import_daily_holding(adapter, reported, first_day).remap_security!(chosen)
+    next_day = import_daily_holding(adapter, reported, first_day + 1)
 
     assert_equal chosen.id, next_day.security_id
     assert_equal reported.id, next_day.provider_security_id
@@ -794,12 +771,12 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
   end
 
   test "carries a locked cost basis forward to the next day's holding" do
-    _account, adapter, account_provider = provider_holding_setup
+    _account, adapter = provider_holding_setup
     security = Security.create!(ticker: "LCKD", name: "Locked Basis Fund")
     first_day = 20.days.ago.to_date
 
-    import_daily_holding(adapter, account_provider, security, first_day).set_manual_cost_basis!(42)
-    next_day = import_daily_holding(adapter, account_provider, security, first_day + 1, cost_basis: 10)
+    import_daily_holding(adapter, security, first_day).set_manual_cost_basis!(42)
+    next_day = import_daily_holding(adapter, security, first_day + 1, cost_basis: 10)
 
     assert_equal 42, next_day.cost_basis
     assert_equal "manual", next_day.cost_basis_source
@@ -807,13 +784,13 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
   end
 
   test "does not revive a correction the user has since undone" do
-    _account, adapter, account_provider = provider_holding_setup
+    _account, adapter = provider_holding_setup
     security = Security.create!(ticker: "UNDO", name: "Unlocked Basis Fund")
     first_day = 20.days.ago.to_date
 
-    import_daily_holding(adapter, account_provider, security, first_day).set_manual_cost_basis!(42)
-    import_daily_holding(adapter, account_provider, security, first_day + 1).unlock_cost_basis!
-    third_day = import_daily_holding(adapter, account_provider, security, first_day + 2, cost_basis: 10)
+    import_daily_holding(adapter, security, first_day).set_manual_cost_basis!(42)
+    import_daily_holding(adapter, security, first_day + 1).unlock_cost_basis!
+    third_day = import_daily_holding(adapter, security, first_day + 2, cost_basis: 10)
 
     assert_equal 10, third_day.cost_basis
     assert_equal "provider", third_day.cost_basis_source
@@ -821,16 +798,16 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
   end
 
   test "a second same-day import of a remapped position's provider row updates today's row" do
-    account, adapter, account_provider = provider_holding_setup
+    account, adapter = provider_holding_setup
     original = Security.create!(ticker: "DUPE", name: "Provider Row")
     chosen = Security.create!(ticker: "DUPE", name: "Chosen Row", exchange_operating_mic: "XNYS")
     yesterday = Date.current - 1
 
-    import_holding_without_external_id(adapter, account_provider, original, yesterday).remap_security!(chosen)
-    import_holding_without_external_id(adapter, account_provider, original, Date.current)
+    import_holding_without_external_id(adapter, original, yesterday).remap_security!(chosen)
+    import_holding_without_external_id(adapter, original, Date.current)
 
     assert_nothing_raised do
-      import_holding_without_external_id(adapter, account_provider, original, Date.current, quantity: 12)
+      import_holding_without_external_id(adapter, original, Date.current, quantity: 12)
     end
 
     today = account.holdings.where(security: [ original, chosen ], date: Date.current, currency: "USD")
@@ -839,16 +816,16 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
   end
 
   test "a remapped position's chosen row carries the lock and the original provider row forward" do
-    account, adapter, account_provider = provider_holding_setup
+    account, adapter = provider_holding_setup
     original = Security.create!(ticker: "PICK", name: "Provider Row")
     chosen = Security.create!(ticker: "PICK", name: "Chosen Row", exchange_operating_mic: "XNYS")
     yesterday = Date.current - 1
 
-    earlier = import_holding_without_external_id(adapter, account_provider, original, yesterday)
+    earlier = import_holding_without_external_id(adapter, original, yesterday)
     earlier.remap_security!(chosen)
     earlier.set_manual_cost_basis!(42)
 
-    today = import_holding_without_external_id(adapter, account_provider, chosen, Date.current, cost_basis: 10)
+    today = import_holding_without_external_id(adapter, chosen, Date.current, cost_basis: 10)
 
     assert_equal chosen.id, today.security_id
     assert today.security_locked?
@@ -865,58 +842,38 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
   # row is created first and has the lower id, so neither insertion order nor
   # an id tiebreak alone would return the right one.
   test "a chained remap carries forward the row the provider security came from" do
-    account, adapter, account_provider = provider_holding_setup
+    account, adapter = provider_holding_setup
     first = Security.create!(ticker: "CHNA", name: "Provider A")
     middle = Security.create!(ticker: "CHNB", name: "Provider B, chosen for A")
     last = Security.create!(ticker: "CHNC", name: "Chosen for B")
     yesterday = Date.current - 1
     account.holdings.create!(
-      id: "00000000-0000-4000-8000-000000000001", security: middle, provider_security: first, security_locked: true, account_provider: account_provider,
+      id: "00000000-0000-4000-8000-000000000001", security: middle, provider_security: first, security_locked: true,
       date: yesterday, currency: "USD", qty: 1, price: 10, amount: 10, cost_basis: 11, cost_basis_locked: true
     )
     account.holdings.create!(
-      id: "ffffffff-ffff-4fff-bfff-ffffffffffff", security: last, provider_security: middle, security_locked: true, account_provider: account_provider,
+      id: "ffffffff-ffff-4fff-bfff-ffffffffffff", security: last, provider_security: middle, security_locked: true,
       date: yesterday, currency: "USD", qty: 2, price: 10, amount: 20, cost_basis: 22, cost_basis_locked: true
     )
 
-    today = import_holding_without_external_id(adapter, account_provider, middle, Date.current)
+    today = import_holding_without_external_id(adapter, middle, Date.current)
 
     assert_equal last.id, today.security_id
     assert_equal middle.id, today.provider_security_id
     assert_equal 22, today.cost_basis
   end
 
-  test "another provider's same-day row with that provider security is not claimed" do
-    account, adapter, account_provider = provider_holding_setup
-    other_provider = AccountProvider.create!(account: account, provider: snaptrade_accounts(:vanguard_ira))
-    original = Security.create!(ticker: "MINE", name: "Provider Row")
-    chosen = Security.create!(ticker: "MINE", name: "Chosen Row", exchange_operating_mic: "XNYS")
-    others = account.holdings.create!(
-      security: chosen, provider_security: original, security_locked: true, account_provider: other_provider,
-      date: Date.current, currency: "USD", qty: 5, price: 100, amount: 500
-    )
-
-    ours = import_holding_without_external_id(adapter, account_provider, original, Date.current)
-
-    assert_not_equal others.id, ours.id
-    assert_equal original.id, ours.security_id
-    assert_equal account_provider.id, ours.account_provider_id
-    others.reload
-    assert_equal 5, others.qty
-    assert_equal other_provider.id, others.account_provider_id
-  end
-
   test "an unlocked earlier row on the chosen security is not treated as a correction" do
-    account, adapter, account_provider = provider_holding_setup
+    account, adapter = provider_holding_setup
     original = Security.create!(ticker: "OPEN", name: "Provider Row")
     chosen = Security.create!(ticker: "OPEN", name: "Chosen Row", exchange_operating_mic: "XNYS")
     account.holdings.create!(
-      security: chosen, provider_security: original, security_locked: false, account_provider: account_provider,
+      security: chosen, provider_security: original, security_locked: false,
       date: Date.current - 1, currency: "USD", qty: 10, price: 100, amount: 1000,
       cost_basis: 42, cost_basis_source: "manual", cost_basis_locked: true
     )
 
-    today = import_holding_without_external_id(adapter, account_provider, chosen, Date.current, cost_basis: 10)
+    today = import_holding_without_external_id(adapter, chosen, Date.current, cost_basis: 10)
 
     assert_not today.security_locked?
     assert_equal chosen.id, today.provider_security_id
@@ -957,70 +914,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
 
     # Future holding should still exist
     assert Holding.exists?(future_holding.id)
-  end
-
-  test "deletes only holdings from same provider when account_provider_id is provided" do
-    investment_account = accounts(:investment)
-    adapter = Account::ProviderImportAdapter.new(investment_account)
-    security = securities(:aapl)
-
-    # Create an account provider
-    plaid_account = PlaidAccount.create!(
-      current_balance: 1000,
-      available_balance: 1000,
-      currency: "USD",
-      name: "Test Plaid Account",
-      plaid_item: plaid_items(:one),
-      plaid_id: "acc_mock_test_1",
-      plaid_type: "investment",
-      plaid_subtype: "brokerage"
-    )
-
-    provider = AccountProvider.create!(
-      account: investment_account,
-      provider: plaid_account
-    )
-
-    # Create future holdings - one from the provider, one without a provider
-    future_holding_with_provider = investment_account.holdings.create!(
-      security: security,
-      qty: 5,
-      amount: 750,
-      currency: "USD",
-      date: Date.today + 120.days,
-      price: 150,
-      account_provider_id: provider.id
-    )
-
-    future_holding_without_provider = investment_account.holdings.create!(
-      security: security,
-      qty: 3,
-      amount: 450,
-      currency: "USD",
-      date: Date.today + 2.days,
-      price: 150,
-      account_provider_id: nil
-    )
-
-    # Mock can_delete_holdings? to return true
-    investment_account.expects(:can_delete_holdings?).returns(true)
-
-    # Import a holding with provider ID and delete_future_holdings flag
-    adapter.import_holding(
-      security: security,
-      quantity: 10,
-      amount: 1500,
-      currency: "USD",
-      date: Date.today - 10.days,
-      price: 150,
-      source: "plaid",
-      account_provider_id: provider.id,
-      delete_future_holdings: true
-    )
-
-    # Only the holding from the same provider should be deleted
-    assert_not Holding.exists?(future_holding_with_provider.id)
-    assert Holding.exists?(future_holding_without_provider.id)
   end
 
   test "deletes all future holdings when account_provider_id is not provided and can_delete_holdings? returns true" do
@@ -1241,6 +1134,21 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
     end
   end
 
+  test "never claims a part of a split entry for a matching provider transaction" do
+    parent = @account.entries.create!(date: Date.today, amount: 37.50, currency: "USD", name: "Market", entryable: Transaction.new)
+    parent.split!([ { name: "Groceries", amount: 25, category_id: nil }, { name: "Household", amount: 12.50, category_id: nil } ])
+    household = parent.child_entries.find_by!(name: "Household")
+
+    entry = nil
+    assert_difference "@account.entries.count", 1 do
+      entry = @adapter.import_transaction(external_id: "lunchflow_678", amount: 12.50, currency: "USD", date: Date.today,
+                                          name: "Hardware store", source: "lunchflow")
+    end
+
+    assert_not_equal household.id, entry.id
+    assert_equal [ nil, nil, "Household", parent.id ], household.reload.values_at(:external_id, :source, :name, :parent_entry_id)
+  end
+
   test "claims CSV imported transaction when provider syncs matching transaction" do
     # Create a CSV imported transaction (has import_id but no external_id)
     import = Import.create!(
@@ -1429,617 +1337,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
   end
 
   # ============================================================================
-  # Pending→Posted Transaction Reconciliation Tests
-  # ============================================================================
-
-  test "reconciles pending transaction when posted version arrives with different external_id" do
-    # Simulate SimpleFIN giving different IDs for pending vs posted transactions
-    # First, import a pending transaction
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_pending_abc",
-      amount: 99.99,
-      currency: "USD",
-      date: Date.today - 2.days,
-      name: "Coffee Shop",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    assert pending_entry.transaction.pending?, "Entry should be marked pending"
-    original_id = pending_entry.id
-
-    # Now import the posted version with a DIFFERENT external_id
-    # This should claim the pending entry, not create a duplicate
-    assert_no_difference "@account.entries.count" do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_posted_xyz",
-        amount: 99.99,
-        currency: "USD",
-        date: Date.today,
-        name: "Coffee Shop - Posted",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      # Should be the same entry, now with updated external_id
-      assert_equal original_id, posted_entry.id
-      assert_equal "simplefin_posted_xyz", posted_entry.external_id
-      assert_not posted_entry.transaction.pending?, "Entry should no longer be pending"
-    end
-  end
-
-  test "clears pending flag, preserves pending date, and records old external_id when claiming pending entry with nil extra" do
-    # Enable Banking booked transactions often have nil extra (no FX, no MCC).
-    # The deep_merge path is skipped, so we must clear the pending flag explicitly.
-    pending_date = Date.today - 2.days
-    pending_entry = @adapter.import_transaction(
-      external_id: "eb_pending_nil_extra",
-      amount: 42.00,
-      currency: "EUR",
-      date: pending_date,
-      name: "Supermarket",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-
-    assert pending_entry.transaction.pending?, "should be pending before claim"
-
-    assert_no_difference "@account.entries.count" do
-      posted_entry = @adapter.import_transaction(
-        external_id: "eb_booked_nil_extra",
-        amount: 42.00,
-        currency: "EUR",
-        date: Date.today,   # booked date is later than pending date
-        name: "Supermarket Posted",
-        source: "enable_banking",
-        extra: nil  # typical for simple Enable Banking booked transactions
-      )
-
-      assert_equal pending_entry.id, posted_entry.id, "should claim the pending entry"
-      assert_equal "eb_booked_nil_extra", posted_entry.external_id
-
-      posted_entry.reload
-
-      # Pending flag must be cleared so the entry no longer shows a pending badge
-      assert_not posted_entry.transaction.pending?, "pending flag should be cleared after claim"
-
-      # Date must be the original pending date, not the later booked date
-      assert_equal pending_date, posted_entry.date, "pending date should be preserved, not overwritten with booked date"
-
-      # Old pending external_id must be stored so the sync engine can skip re-importing it
-      claimed_ids = posted_entry.transaction.extra&.dig("auto_claimed_pending_ids") || []
-      assert_includes claimed_ids, "eb_pending_nil_extra",
-        "auto_claimed_pending_ids should record the old pending external_id"
-    end
-  end
-
-  test "preserves pending date on subsequent syncs after auto-claim" do
-    # On the first sync the pending date is captured from the pending match.
-    # On subsequent syncs the entry already exists (found by booked external_id),
-    # so pending_match is nil. auto_claimed_pending_ids signals the prior claim
-    # and the stored date must not be overwritten with the booked date.
-    pending_date = Date.today - 3.days
-    booked_date  = Date.today
-
-    @adapter.import_transaction(
-      external_id: "eb_pending_subseq",
-      amount: 75.00,
-      currency: "EUR",
-      date: pending_date,
-      name: "Coffee Shop",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-
-    # First sync: claim the pending entry
-    @adapter.import_transaction(
-      external_id: "eb_booked_subseq",
-      amount: 75.00,
-      currency: "EUR",
-      date: booked_date,
-      name: "Coffee Shop Posted",
-      source: "enable_banking",
-      extra: nil
-    )
-
-    # Simulate a subsequent sync: same booked transaction arrives again
-    assert_no_difference "@account.entries.count" do
-      re_synced = @adapter.import_transaction(
-        external_id: "eb_booked_subseq",
-        amount: 75.00,
-        currency: "EUR",
-        date: booked_date,
-        name: "Coffee Shop Posted",
-        source: "enable_banking",
-        extra: nil
-      )
-
-      re_synced.reload
-      assert_equal pending_date, re_synced.date,
-        "pending date must be preserved on subsequent syncs, not overwritten with booked date"
-    end
-  end
-
-  test "does not reconcile when posted transaction has same external_id as pending" do
-    # When external_id matches, normal dedup should handle it
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_same_id",
-      amount: 50.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Gas Station",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import posted version with SAME external_id
-    assert_no_difference "@account.entries.count" do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_same_id",
-        amount: 50.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Gas Station - Posted",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      assert_equal pending_entry.id, posted_entry.id
-      assert_not posted_entry.transaction.pending?
-    end
-  end
-
-  test "fuzzy amount match creates suggestion instead of auto-claiming" do
-    # Import pending transaction (pre-tip authorization)
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_pending_amount_test",
-      amount: 100.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Restaurant",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import posted with tip added - should NOT auto-claim, but should store suggestion
-    # Fuzzy matches now create suggestions for user review instead of auto-reconciling
-    assert_difference "@account.entries.count", 1 do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_posted_amount_test",
-        amount: 105.00, # 5% tip added - within 25% tolerance
-        currency: "USD",
-        date: Date.today,
-        name: "Restaurant",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      # Should be a NEW entry (not claimed)
-      assert_not_equal pending_entry.id, posted_entry.id
-      assert_equal "simplefin_posted_amount_test", posted_entry.external_id
-
-      # The PENDING entry should now have a potential_posted_match suggestion
-      pending_entry.reload
-      assert pending_entry.transaction.has_potential_duplicate?
-      assert_equal posted_entry.id, pending_entry.transaction.potential_duplicate_entry.id
-    end
-  end
-
-  test "does not reconcile pending when amount difference exceeds tolerance" do
-    # Import pending transaction
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_pending_big_diff",
-      amount: 50.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Store",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import posted with amount >25% different - should NOT match
-    # $100 posted / 1.25 = $80 minimum pending, but pending is only $50
-    assert_difference "@account.entries.count", 1 do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_posted_big_diff",
-        amount: 100.00, # 100% increase - way outside 25% tolerance
-        currency: "USD",
-        date: Date.today,
-        name: "Store",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      assert_not_equal pending_entry.id, posted_entry.id
-    end
-  end
-
-  test "does not reconcile pending when date is outside window" do
-    # Import pending transaction
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_pending_date_test",
-      amount: 25.00,
-      currency: "USD",
-      date: Date.today - 15.days, # 15 days ago
-      name: "Subscription",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import posted with date outside 7-day window - should NOT match
-    assert_difference "@account.entries.count", 1 do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_posted_date_test",
-        amount: 25.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Subscription",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      assert_not_equal pending_entry.id, posted_entry.id
-    end
-  end
-
-  test "reconciles pending within 7 day window" do
-    # Import pending transaction
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_pending_window_test",
-      amount: 75.00,
-      currency: "USD",
-      date: Date.today - 5.days,
-      name: "Online Order",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import posted within 7-day window - should match
-    assert_no_difference "@account.entries.count" do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_posted_window_test",
-        amount: 75.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Online Order - Posted",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      assert_equal pending_entry.id, posted_entry.id
-    end
-  end
-
-  test "does not reconcile pending from different source" do
-    # Import pending from SimpleFIN
-    pending_entry = @adapter.import_transaction(
-      external_id: "simplefin_pending_source_test",
-      amount: 30.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Pharmacy",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import from different source (plaid) - should NOT match SimpleFIN pending
-    assert_difference "@account.entries.count", 1 do
-      plaid_entry = @adapter.import_transaction(
-        external_id: "plaid_posted_source_test",
-        amount: 30.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Pharmacy",
-        source: "plaid",
-        extra: { "plaid" => { "pending" => false } }
-      )
-
-      assert_not_equal pending_entry.id, plaid_entry.id
-    end
-  end
-
-  test "does not reconcile when incoming transaction is also pending" do
-    # Import first pending transaction
-    pending_entry1 = @adapter.import_transaction(
-      external_id: "simplefin_pending_1",
-      amount: 45.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Store",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import another pending transaction with different ID - should NOT match
-    assert_difference "@account.entries.count", 1 do
-      pending_entry2 = @adapter.import_transaction(
-        external_id: "simplefin_pending_2",
-        amount: 45.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Store",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => true } }
-      )
-
-      assert_not_equal pending_entry1.id, pending_entry2.id
-    end
-  end
-
-  test "reconciles most recent pending when multiple exist" do
-    # Create two pending transactions with same amount
-    older_pending = @adapter.import_transaction(
-      external_id: "simplefin_older_pending",
-      amount: 60.00,
-      currency: "USD",
-      date: Date.today - 5.days,
-      name: "Recurring Payment - Old",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    newer_pending = @adapter.import_transaction(
-      external_id: "simplefin_newer_pending",
-      amount: 60.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Recurring Payment - New",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Import posted - should match the most recent pending (by date)
-    assert_no_difference "@account.entries.count" do
-      posted_entry = @adapter.import_transaction(
-        external_id: "simplefin_posted_recurring",
-        amount: 60.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Recurring Payment - Posted",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => false } }
-      )
-
-      # Should match the newer pending entry
-      assert_equal newer_pending.id, posted_entry.id
-      # Older pending should remain untouched
-      assert_equal "simplefin_older_pending", older_pending.reload.external_id
-    end
-  end
-
-  # Every provider in Transaction::PENDING_PROVIDERS must be reconcilable, not just the
-  # ones the lookup happened to spell out.
-  test "find_pending_transaction covers every pending-capable provider" do
-    Transaction::PENDING_PROVIDERS.each_with_index do |provider, index|
-      amount = 10.00 + index
-      pending = @adapter.import_transaction(
-        external_id: "#{provider}_pending_#{index}",
-        amount: amount,
-        currency: "USD",
-        date: Date.today - 1.day,
-        name: "Pending #{provider}",
-        source: provider,
-        extra: { provider => { "pending" => true } }
-      )
-
-      result = @adapter.find_pending_transaction(
-        date: Date.today,
-        amount: amount,
-        currency: "USD",
-        source: provider
-      )
-
-      assert_equal pending.id, result&.id, "#{provider} pending transactions must be findable"
-    end
-  end
-
-  test "find_pending_transaction returns nil when no pending transactions exist" do
-    # Create a non-pending transaction
-    @adapter.import_transaction(
-      external_id: "simplefin_not_pending",
-      amount: 40.00,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Regular Transaction",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => false } }
-    )
-
-    result = @adapter.find_pending_transaction(
-      date: Date.today,
-      amount: 40.00,
-      currency: "USD",
-      source: "simplefin"
-    )
-
-    assert_nil result
-  end
-
-  test "all pending reconciliation finders use transaction semantics for malformed flags" do
-    exact = @adapter.import_transaction(
-      external_id: "simplefin_unparseable_exact",
-      amount: 49_231.17,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Exact Pending",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => "maybe" } }
-    )
-    fuzzy = @adapter.import_transaction(
-      external_id: "simplefin_unparseable_fuzzy",
-      amount: 77.00,
-      currency: "USD",
-      date: Date.today - 2.days,
-      name: "Fuzzy Pending",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => "maybe" } }
-    )
-    merchant = ProviderMerchant.create!(
-      provider_merchant_id: "pending-low-confidence",
-      name: "Low Confidence Merchant",
-      source: "simplefin"
-    )
-    low_confidence = @adapter.import_transaction(
-      external_id: "simplefin_unparseable_low_confidence",
-      amount: 50.00,
-      currency: "USD",
-      date: Date.today - 3.days,
-      name: "Low Confidence Pending",
-      source: "simplefin",
-      merchant: merchant,
-      extra: { "simplefin" => { "pending" => "maybe" } }
-    )
-
-    [ exact, fuzzy, low_confidence ].each { |entry| assert entry.transaction.pending? }
-    assert_equal exact.id, @adapter.find_pending_transaction(
-      date: Date.today, amount: 49_231.17, currency: "USD", source: "simplefin"
-    ).id
-    assert_equal fuzzy.id, @adapter.find_pending_transaction_fuzzy(
-      date: Date.today, amount: 100, currency: "USD", source: "simplefin", name: "Fuzzy Pending"
-    ).id
-    assert_equal low_confidence.id, @adapter.find_pending_transaction_low_confidence(
-      date: Date.today, amount: 100, currency: "USD", source: "simplefin",
-      merchant_id: merchant.id, name: "Low Confidence Pending"
-    ).id
-  end
-
-  test "all pending reconciliation finders exclude explicit false flags" do
-    exact = @adapter.import_transaction(
-      external_id: "simplefin_false_exact",
-      amount: 49_232.17,
-      currency: "USD",
-      date: Date.today - 1.day,
-      name: "Exact Posted",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => "false" } }
-    )
-    fuzzy = @adapter.import_transaction(
-      external_id: "simplefin_false_fuzzy",
-      amount: 77.00,
-      currency: "USD",
-      date: Date.today - 2.days,
-      name: "Fuzzy Posted",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => "false" } }
-    )
-    merchant = ProviderMerchant.create!(
-      provider_merchant_id: "pending-false-low-confidence",
-      name: "False Low Confidence Merchant",
-      source: "simplefin"
-    )
-    low_confidence = @adapter.import_transaction(
-      external_id: "simplefin_false_low_confidence",
-      amount: 50.00,
-      currency: "USD",
-      date: Date.today - 3.days,
-      name: "Low Confidence Posted",
-      source: "simplefin",
-      merchant: merchant,
-      extra: { "simplefin" => { "pending" => "false" } }
-    )
-
-    [ exact, fuzzy, low_confidence ].each { |entry| assert_not entry.transaction.pending? }
-    assert_nil @adapter.find_pending_transaction(
-      date: Date.today, amount: 49_232.17, currency: "USD", source: "simplefin"
-    )
-    assert_nil @adapter.find_pending_transaction_fuzzy(
-      date: Date.today, amount: 100, currency: "USD", source: "simplefin", name: "Fuzzy Posted"
-    )
-    assert_nil @adapter.find_pending_transaction_low_confidence(
-      date: Date.today, amount: 100, currency: "USD", source: "simplefin",
-      merchant_id: merchant.id, name: "Low Confidence Posted"
-    )
-  end
-
-  # ============================================================================
-  # Critical Direction Fix Tests (CITGO Bug Prevention)
-  # ============================================================================
-
-  test "does not match pending transaction that is AFTER the posted date (direction fix)" do
-    # This is the CITGO bug scenario:
-    # - Posted transaction on Dec 31
-    # - Pending transaction on Jan 8 (AFTER the posted)
-    # - These should NOT match because pending MUST come BEFORE posted
-
-    # First, import a POSTED transaction on an earlier date
-    posted_entry = @adapter.import_transaction(
-      external_id: "simplefin_posted_dec31",
-      amount: 6.67,
-      currency: "USD",
-      date: Date.today - 8.days, # Dec 31 (earlier)
-      name: "CITGO Gas Station",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => false } }
-    )
-
-    # Now import a PENDING transaction on a LATER date
-    # This should NOT be matched because the date direction is wrong
-    assert_difference "@account.entries.count", 1 do
-      pending_entry = @adapter.import_transaction(
-        external_id: "simplefin_pending_jan8",
-        amount: 6.65, # Similar but different amount
-        currency: "USD",
-        date: Date.today, # Jan 8 (later)
-        name: "CITGO Gas Station",
-        source: "simplefin",
-        extra: { "simplefin" => { "pending" => true } }
-      )
-
-      # Should be a DIFFERENT entry - not matched to the earlier posted one
-      assert_not_equal posted_entry.id, pending_entry.id
-      assert pending_entry.transaction.pending?
-    end
-  end
-
-  test "find_pending_transaction only searches backward in time" do
-    # Create a pending transaction in the FUTURE (after the posted date we'll search from)
-    # This should NOT be found because pending must be ON or BEFORE posted
-    future_pending = @adapter.import_transaction(
-      external_id: "simplefin_future_pending",
-      amount: 50.00,
-      currency: "USD",
-      date: Date.today + 3.days, # Future date
-      name: "Future Transaction",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Search from today - should NOT find the future pending
-    result = @adapter.find_pending_transaction(
-      date: Date.today,
-      amount: 50.00,
-      currency: "USD",
-      source: "simplefin"
-    )
-
-    assert_nil result, "Should not find pending transactions that are in the future relative to the posted date"
-  end
-
-  test "find_pending_transaction finds pending transaction that is before posted date" do
-    # Create a pending transaction in the PAST (before the posted date)
-    # This SHOULD be found
-    past_pending = @adapter.import_transaction(
-      external_id: "simplefin_past_pending",
-      amount: 75.00,
-      currency: "USD",
-      date: Date.today - 3.days, # 3 days ago
-      name: "Past Transaction",
-      source: "simplefin",
-      extra: { "simplefin" => { "pending" => true } }
-    )
-
-    # Search from today - should find the past pending
-    result = @adapter.find_pending_transaction(
-      date: Date.today,
-      amount: 75.00,
-      currency: "USD",
-      source: "simplefin"
-    )
-
-    assert_equal past_pending.id, result.id
-  end
-
-  # ============================================================================
   # Plaid pending_transaction_id Tests
   # ============================================================================
 
@@ -2155,79 +1452,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
     assert_equal "plaid_pending_1", pending1.external_id
   end
 
-  # =========================================================================
-  # Same-external-id pending → booked (e.g. Revolut Italy via Enable Banking)
-  # Some ASPSPs reuse the same transaction_id for pending and booked, so the
-  # entry is found by find_or_initialize_by (persisted), bypassing auto-claim.
-  # =========================================================================
-
-  test "clears pending flag when same external_id is reused for booked version (not user-modified)" do
-    pending_entry = @adapter.import_transaction(
-      external_id: "eb_same_id_123",
-      amount: 30.0,
-      currency: "EUR",
-      date: Date.today - 2.days,
-      name: "Piero Fiorista",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-    assert pending_entry.transaction.pending?, "entry should start as pending"
-
-    # Booked version arrives with the SAME external_id (Revolut Italy behaviour).
-    # extra is nil (no FX, no MCC) so the deep-merge block would normally be skipped.
-    assert_no_difference "@account.entries.count" do
-      booked_entry = @adapter.import_transaction(
-        external_id: "eb_same_id_123",
-        amount: 30.0,
-        currency: "EUR",
-        date: Date.today,
-        name: "Piero Fiorista",
-        source: "enable_banking",
-        extra: nil
-      )
-
-      assert_equal pending_entry.id, booked_entry.id, "should update the same entry"
-      assert_not booked_entry.transaction.pending?,
-        "pending flag should be cleared even when extra is nil"
-    end
-  end
-
-  test "clears pending flag when same external_id reused and entry is user-modified (Revolut Italy)" do
-    pending_entry = @adapter.import_transaction(
-      external_id: "eb_same_id_user_mod",
-      amount: 50.0,
-      currency: "EUR",
-      date: Date.today - 3.days,
-      name: "Clean Center",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-    assert pending_entry.transaction.pending?, "entry should start as pending"
-
-    # User categorises the pending entry — sets user_modified = true
-    pending_entry.mark_user_modified!
-    assert pending_entry.reload.user_modified?, "entry should be marked user-modified"
-
-    # Booked version with the same external_id arrives — protection check would normally
-    # return early and leave the pending badge intact.
-    assert_no_difference "@account.entries.count" do
-      booked_entry = @adapter.import_transaction(
-        external_id: "eb_same_id_user_mod",
-        amount: 50.0,
-        currency: "EUR",
-        date: Date.today,
-        name: "Clean Center",
-        source: "enable_banking",
-        extra: nil
-      )
-
-      assert_equal pending_entry.id, booked_entry.id, "should reference the same entry"
-      booked_entry.reload
-      assert_not booked_entry.transaction.pending?,
-        "pending flag must be cleared even for user-modified entries"
-    end
-  end
-
   # Provider metadata is not user-editable, so a user edit elsewhere on the entry
   # must not freeze it: the drawer has to reflect what the provider last sent,
   # including dropping fields it no longer sends.
@@ -2332,119 +1556,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
       "the provider's own namespace should still refresh"
   end
 
-  # A provider key holding anything but an object says nothing about that
-  # provider, and Transaction.pending_extra? skips it the way pending_sql does.
-  # Hash#dig raised TypeError on such a value instead, and these reads sit
-  # inside Account.transaction with no rescue between them and the caller, so a
-  # single malformed namespace aborted the whole import. simplefin is first in
-  # PENDING_PROVIDERS, so the malformed key is always reached.
-  test "a scalar provider value in an incoming payload does not abort the import" do
-    entry = nil
-
-    assert_difference "@account.entries.count", 1 do
-      entry = @adapter.import_transaction(
-        external_id: "scalar_incoming_flag",
-        amount: 12.0,
-        currency: "EUR",
-        date: Date.today,
-        name: "Scalar Provider",
-        source: "enable_banking",
-        extra: { "simplefin" => "oops", "akahu" => { "pending" => true } }
-      )
-    end
-
-    assert entry.transaction.pending?,
-      "the well-formed provider flag still decides when another namespace is malformed"
-  end
-
-  test "a scalar provider value in a stored flag does not abort clearing it" do
-    pending_entry = @adapter.import_transaction(
-      external_id: "eb_scalar_stored",
-      amount: 30.0,
-      currency: "EUR",
-      date: Date.today - 2.days,
-      name: "Scalar Stored",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-    pending_entry.transaction.update!(extra: { "simplefin" => "oops", "enable_banking" => { "pending" => true } })
-    assert pending_entry.transaction.reload.pending?, "entry should start as pending"
-
-    assert_no_difference "@account.entries.count" do
-      booked_entry = @adapter.import_transaction(
-        external_id: "eb_scalar_stored",
-        amount: 30.0,
-        currency: "EUR",
-        date: Date.today,
-        name: "Scalar Stored",
-        source: "enable_banking",
-        extra: nil
-      )
-
-      assert_not booked_entry.transaction.reload.pending?,
-        "the stale flag is cleared past the malformed namespace"
-    end
-  end
-
-  test "a scalar provider value in a stored flag does not abort the user-modified path" do
-    pending_entry = @adapter.import_transaction(
-      external_id: "eb_scalar_user_mod",
-      amount: 50.0,
-      currency: "EUR",
-      date: Date.today - 3.days,
-      name: "Scalar User Modified",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-    pending_entry.transaction.update!(extra: { "simplefin" => "oops", "enable_banking" => { "pending" => true } })
-    pending_entry.mark_user_modified!
-
-    assert_no_difference "@account.entries.count" do
-      booked_entry = @adapter.import_transaction(
-        external_id: "eb_scalar_user_mod",
-        amount: 50.0,
-        currency: "EUR",
-        date: Date.today,
-        name: "Scalar User Modified",
-        source: "enable_banking",
-        extra: nil
-      )
-
-      assert_not booked_entry.transaction.reload.pending?,
-        "the stale flag is cleared for a user-modified entry past the malformed namespace"
-    end
-  end
-
-  # The stored flag is cast the way #pending? casts it. Read for truthiness
-  # instead, the string "false" counted as pending and the booked sync deleted
-  # a flag that was never set.
-  test "a stored pending flag of \"false\" is left alone when the booked version arrives" do
-    pending_entry = @adapter.import_transaction(
-      external_id: "eb_false_flag",
-      amount: 18.0,
-      currency: "EUR",
-      date: Date.today - 1.day,
-      name: "False Flag",
-      source: "enable_banking",
-      extra: { "enable_banking" => { "pending" => true } }
-    )
-    pending_entry.transaction.update!(extra: { "enable_banking" => { "pending" => "false" } })
-    assert_not pending_entry.transaction.reload.pending?, "\"false\" does not mark a transaction pending"
-
-    @adapter.import_transaction(
-      external_id: "eb_false_flag",
-      amount: 18.0,
-      currency: "EUR",
-      date: Date.today,
-      name: "False Flag",
-      source: "enable_banking",
-      extra: nil
-    )
-
-    assert_equal "false", pending_entry.transaction.reload.extra.dig("enable_banking", "pending"),
-      "a flag that does not mark the transaction pending is not cleared"
-  end
-
   private
 
     def capture_sql_queries
@@ -2465,13 +1576,12 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
 
     def provider_holding_setup
       account = accounts(:investment)
-      account_provider = AccountProvider.create!(account: account, provider: plaid_accounts(:one))
-      [ account, Account::ProviderImportAdapter.new(account), account_provider ]
+      [ account, Account::ProviderImportAdapter.new(account) ]
     end
 
     # One provider snapshot per day, identified the way the daily-snapshot
     # processors do it: the provider's id suffixed with the date.
-    def import_daily_holding(adapter, account_provider, security, date, cost_basis: nil)
+    def import_daily_holding(adapter, security, date, cost_basis: nil)
       adapter.import_holding(
         security: security,
         quantity: 10,
@@ -2481,14 +1591,13 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
         price: 100,
         cost_basis: cost_basis,
         external_id: "provider_lot_#{date}",
-        source: "plaid",
-        account_provider_id: account_provider.id
+        source: "plaid"
       )
     end
 
     # A provider that sends no external_id (Plaid, Indexa Capital, SnapTrade
     # securities): the row is keyed by security, date and currency.
-    def import_holding_without_external_id(adapter, account_provider, security, date, quantity: 10, cost_basis: nil)
+    def import_holding_without_external_id(adapter, security, date, quantity: 10, cost_basis: nil)
       adapter.import_holding(
         security: security,
         quantity: quantity,
@@ -2497,8 +1606,7 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
         date: date,
         price: 100,
         cost_basis: cost_basis,
-        source: "plaid",
-        account_provider_id: account_provider.id
+        source: "plaid"
       )
     end
 end

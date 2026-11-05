@@ -22,12 +22,10 @@ class IncomeStatement::DailyExpenseTotalsTest < ActiveSupport::TestCase
     assert_equal 25, by_date[Date.current].total
   end
 
-  test "excludes income, budget-excluded kinds, and pending transactions" do
+  test "excludes income and budget-excluded kinds" do
     create_transaction(account: @checking, amount: -500, date: Date.current) # income
     create_transaction(account: @checking, amount: 40, date: Date.current, kind: "funds_movement")
     create_transaction(account: @checking, amount: 30, date: Date.current, kind: "cc_payment")
-    pending_entry = create_transaction(account: @checking, amount: 20, date: Date.current)
-    pending_entry.entryable.update!(extra: { "simplefin" => { "pending" => true } })
     create_transaction(account: @checking, amount: 10, date: Date.current)
 
     series = daily_series

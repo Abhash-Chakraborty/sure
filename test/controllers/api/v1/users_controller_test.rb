@@ -144,7 +144,6 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "reset status ignores the follow-up family sync after reset" do
     family = @user.family
-    Provider::Registry.stubs(:plaid_provider_for_region).returns(nil)
     Family::FinancialDataReset.new(family: family, dry_run: false, confirmed: true).call
     family.syncs.create!
 

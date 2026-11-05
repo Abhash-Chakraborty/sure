@@ -14,9 +14,6 @@ pl:
       state_region_label: Województwo/region
       state_region_placeholder: mazowieckie
       title: Wprowadź nieruchomość ręcznie
-    avm_providers:
-      realie: Realie
-      rentcast: RentCast
     balances:
       market_value_label: Szacowana wartość rynkowa
       market_value_tooltip: Szacowana wartość rynkowa Twojej nieruchomości. Tę liczbę

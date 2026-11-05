@@ -9,10 +9,8 @@ hu:
     account:
       complete_setup: Beállítás befejezése
       edit: Szerkesztés
-      link_lunchflow: Összekapcsolás a Lunch Flow-val
       link_provider: Összekapcsolás szolgáltatóval
       unlink_provider: Leválasztás a szolgáltatóról
-      change_simplefin_account: SimpleFIN fiók módosítása
       troubleshoot: Hibakeresés
       enable: Számla engedélyezése
       disable: Számla letiltása
@@ -65,7 +63,6 @@ hu:
         connected_entry: Számla összekapcsolása
         connected_entry_eu: EU-s számla összekapcsolása
         link_with_provider: "Összekapcsolás: %{provider}"
-        lunchflow_entry: Lunch Flow számla összekapcsolása
         manual_entry: Egyenleg manuális megadása
         title: Hogyan szeretnéd hozzáadni?
       title: Mit szeretnél hozzáadni?

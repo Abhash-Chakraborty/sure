@@ -22,18 +22,4 @@ class ReplaceUrlBackTest < ApplicationSystemTestCase
     assert_selector "[role='tab'][aria-selected='true']", text: "Holdings"
     assert_current_path account_path(account, tab: "holdings")
   end
-
-  test "Back to a page that dropped its auto-open param shows that page" do
-    visit settings_providers_path(manage: 1)
-    assert_selector "details[open]", text: "SnapTrade"
-    assert_current_path settings_providers_path
-
-    click_link "Preferences"
-    assert_selector "h1", text: "Preferences"
-
-    page.go_back
-
-    assert_selector "h1", text: "Bank sync"
-    assert_current_path settings_providers_path
-  end
 end

@@ -22,7 +22,7 @@ class Security::ProvidedTest < ActiveSupport::TestCase
       exchange_operating_mic: "XNAS", country_code: "US", currency: "USD"
     )
 
-    provider_a.stubs(:class).returns(Provider::TwelveData)
+    provider_a.stubs(:class).returns(Provider::Mfapi)
     provider_b.stubs(:class).returns(Provider::YahooFinance)
 
     provider_a.expects(:search_securities).with("AAPL").returns(
@@ -40,13 +40,13 @@ class Security::ProvidedTest < ActiveSupport::TestCase
     assert_equal 2, results.size
     assert results.all? { |s| s.ticker == "AAPL" }
     providers_in_results = results.map(&:price_provider).sort
-    assert_includes providers_in_results, "twelve_data"
+    assert_includes providers_in_results, "mfapi"
     assert_includes providers_in_results, "yahoo_finance"
   end
 
   test "search_provider deduplicates same ticker+exchange+provider" do
     provider = mock("provider")
-    provider.stubs(:class).returns(Provider::TwelveData)
+    provider.stubs(:class).returns(Provider::Mfapi)
 
     dup_result = Provider::SecurityConcept::Security.new(
       symbol: "MSFT", name: "Microsoft", logo_url: nil,
@@ -77,7 +77,7 @@ class Security::ProvidedTest < ActiveSupport::TestCase
     fast_provider = mock("fast_provider")
     slow_provider = mock("slow_provider")
 
-    fast_provider.stubs(:class).returns(Provider::TwelveData)
+    fast_provider.stubs(:class).returns(Provider::Mfapi)
     slow_provider.stubs(:class).returns(Provider::YahooFinance)
 
     fast_result = Provider::SecurityConcept::Security.new(
@@ -104,7 +104,7 @@ class Security::ProvidedTest < ActiveSupport::TestCase
     good_provider = mock("good_provider")
     bad_provider = mock("bad_provider")
 
-    good_provider.stubs(:class).returns(Provider::TwelveData)
+    good_provider.stubs(:class).returns(Provider::Mfapi)
     bad_provider.stubs(:class).returns(Provider::YahooFinance)
 
     good_result = Provider::SecurityConcept::Security.new(
@@ -141,7 +141,7 @@ class Security::ProvidedTest < ActiveSupport::TestCase
 
   test "search_provider does not invoke technical_failure when a provider genuinely finds nothing" do
     provider = mock("provider")
-    provider.stubs(:class).returns(Provider::TwelveData)
+    provider.stubs(:class).returns(Provider::Mfapi)
     provider.expects(:search_securities).with("NOPE").returns(provider_success_response([]))
 
     Security.stubs(:providers).returns([ provider ])
@@ -156,18 +156,18 @@ class Security::ProvidedTest < ActiveSupport::TestCase
   # --- price_data_provider ---
 
   test "price_data_provider returns assigned provider" do
-    provider = mock("tiingo_provider")
-    Security.stubs(:provider_for).with("tiingo").returns(provider)
+    provider = mock("mfapi_provider")
+    Security.stubs(:provider_for).with("mfapi").returns(provider)
 
-    @security.update!(price_provider: "tiingo")
+    @security.update!(price_provider: "mfapi")
 
     assert_equal provider, @security.price_data_provider
   end
 
   test "price_data_provider returns nil when assigned provider is disabled" do
-    Security.stubs(:provider_for).with("tiingo").returns(nil)
+    Security.stubs(:provider_for).with("mfapi").returns(nil)
 
-    @security.update!(price_provider: "tiingo")
+    @security.update!(price_provider: "mfapi")
 
     assert_nil @security.price_data_provider
   end
@@ -183,7 +183,7 @@ class Security::ProvidedTest < ActiveSupport::TestCase
 
   test "import_provider_details logs provider metadata failures to debug log" do
     provider = mock("provider")
-    provider.stubs(:class).returns(Provider::TwelveData)
+    provider.stubs(:class).returns(Provider::Mfapi)
     provider.stubs(:fetch_security_info).returns(
       provider_error_response(Provider::Error.new("metadata unavailable"))
     )
@@ -202,7 +202,7 @@ class Security::ProvidedTest < ActiveSupport::TestCase
     assert_equal @security.id, entry.metadata["security_id"]
     assert_equal @security.ticker, entry.metadata["ticker"]
     assert_equal "metadata unavailable", entry.metadata["provider_error"]
-    assert_equal "twelve_data", entry.provider_key
+    assert_equal "mfapi", entry.provider_key
   end
 
   # --- find_or_fetch_price ---
@@ -251,18 +251,18 @@ class Security::ProvidedTest < ActiveSupport::TestCase
   # --- provider_status ---
 
   test "provider_status returns provider_unavailable when assigned provider disabled" do
-    Security.stubs(:provider_for).with("tiingo").returns(nil)
+    Security.stubs(:provider_for).with("mfapi").returns(nil)
 
-    @security.update!(price_provider: "tiingo")
+    @security.update!(price_provider: "mfapi")
 
     assert_equal :provider_unavailable, @security.provider_status
   end
 
   test "provider_status returns ok for healthy security" do
     provider = mock("provider")
-    Security.stubs(:provider_for).with("twelve_data").returns(provider)
+    Security.stubs(:provider_for).with("mfapi").returns(provider)
 
-    @security.update!(price_provider: "twelve_data", offline: false, failed_fetch_count: 0)
+    @security.update!(price_provider: "mfapi", offline: false, failed_fetch_count: 0)
 
     assert_equal :ok, @security.provider_status
   end

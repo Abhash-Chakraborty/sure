@@ -96,13 +96,12 @@ excluded from income/expense reporting.
 
 ## Ingestion and background work
 
-Provider connections such as [PlaidItem](../../app/models/plaid_item.rb) hold
+Provider connection records hold
 connection metadata and provider account payloads; processors normalize them into
 internal accounts and entries through [Account::ProviderImportAdapter](../../app/models/account/provider_import_adapter.rb).
 [AccountProvider](../../app/models/account_provider.rb) connects accounts to
 provider records. [Import](../../app/models/import.rb) supports manual import
-sessions, including CSV mapping and transformations. Plaid is one of many supported
-provider integrations.
+sessions, including CSV mapping and transformations.
 
 [Syncable](../../app/models/concerns/syncable.rb) schedules background syncs and
 [Sync](../../app/models/sync.rb) records their state, hierarchy and errors.

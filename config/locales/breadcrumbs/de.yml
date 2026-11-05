@@ -13,44 +13,34 @@ de:
     appearance: Darstellung
     appearances: Darstellung
     bank_sync: Bank-Sync
-    binance_items: Binance
-    brex_items: Brex
     budget_categories: Budgetkategorien
     budgets: Budgets
     categories: Kategorien
     categorize: Kategorisieren
     changelog: Was ist neu
     chats: Chats
-    coinbase_items: Coinbase
-    coinstats_items: CoinStats
     credit_cards: Kreditkarten
     cryptos: Krypto
     dashboard: Dashboard
     debug: Debug
     debugs: Debug
     depositories: Bankkonten
-    enable_banking_items: Enable Banking
     family_exports: Exporte
     family_merchants: Händler
     feedback: Feedback
     guides: Anleitungen
     holdings: Bestände
     hostings: Self-Hosting
-    ibkr_items: Interactive Brokers
     impersonation_sessions: Sitzungsübernahmen
-    indexa_capital_items: Indexa Capital
     intro: Einführung
     investments: Investments
     invitations: Einladungen
     invite_codes: Einladungscodes
-    kraken_items: Kraken
     llm_usage: LLM-Nutzung
     llm_usages: LLM-Nutzung
     loans: Kredite
-    lunchflow_items: Lunch Flow
     mcp: MCP-Server
     merchants: Händler
-    mercury_items: Mercury
     messages: Nachrichten
     mfa: Zwei-Faktor-Authentifizierung
     oidc_accounts: SSO-Konten
@@ -59,7 +49,6 @@ de:
     other_liabilities: Sonstige Verbindlichkeiten
     payments: Zahlungen
     pending_duplicate_merges: Duplikatprüfung
-    plaid_items: Plaid
     plan: Plan
     preferences: Einstellungen
     profile: Profil
@@ -67,7 +56,6 @@ de:
     properties: Immobilien
     providers: Anbieter
     recurring_transactions: Wiederkehrend
-    redbark_items: Redbark
     registrations: Registrieren
     reports: Berichte
     rules: Regeln
@@ -75,9 +63,6 @@ de:
     security: Sicherheit
     self_hosting: Self-Hosting
     sessions: Anmelden
-    simplefin_items: SimpleFIN
-    snaptrade_items: SnapTrade
-    sophtron_items: Sophtron
     splits: Aufteilung
     sso_identities: SSO-Verbindungen
     sso_providers: SSO-Anbieter

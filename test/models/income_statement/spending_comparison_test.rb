@@ -106,9 +106,8 @@ class IncomeStatement::SpendingComparisonTest < ActiveSupport::TestCase
     assert_in_delta 0, travel.ratio, 0.0001
   end
 
-  test "history starts after early transfers and pending transactions" do
+  test "history starts after early transfers" do
     create_transaction(account: @account, date: Date.new(2024, 1, 10), amount: 40, kind: "funds_movement")
-    create_transaction(account: @account, date: Date.new(2024, 2, 10), amount: 40, category: @food).entryable.update!(extra: { "simplefin" => { "pending" => true } })
     create_transaction(account: @account, date: Date.new(2026, 3, 2), amount: 25, category: @food)
 
     assert_equal Date.new(2026, 3, 2), IncomeStatement::SpendingComparison.history_start(IncomeStatement.new(@family))

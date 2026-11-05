@@ -43,7 +43,7 @@ Sure supports two types of merchants:
 | Type | Description |
 | --- | --- |
 | `FamilyMerchant` | Merchants created and owned by the family. |
-| `ProviderMerchant` | Merchants from external providers (e.g., Plaid) assigned to transactions. |
+| `ProviderMerchant` | Merchants from external providers assigned to transactions. |
 
 The `GET /api/v1/merchants` endpoint returns both types: all family merchants plus any provider merchants that are assigned to the family's transactions.
 

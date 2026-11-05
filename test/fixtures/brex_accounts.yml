@@ -1,7 +1,0 @@
-checking_account:
-  brex_item: one
-  account_id: "cash_acc_checking_1"
-  account_kind: cash
-  name: "Brex Checking"
-  currency: USD
-  current_balance: 10000.00

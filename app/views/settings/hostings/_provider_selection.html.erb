@@ -13,9 +13,7 @@
                          } do |form| %>
       <%= form.select :exchange_rate_provider,
                       [
-                        [t(".providers.twelve_data"), "twelve_data"],
                         [t(".providers.yahoo_finance"), "yahoo_finance"],
-                        [t(".providers.moex_public"), "moex_public"],
                         [t(".providers.frankfurter"), "frankfurter"]
                       ],
                       { label: t(".exchange_rate_provider_label") },
@@ -46,16 +44,9 @@
         <input type="hidden" name="setting[securities_providers][]" value="">
 
         <% [
-          ["twelve_data", t(".providers.twelve_data"), t(".twelve_data_hint")],
           ["yahoo_finance", t(".providers.yahoo_finance"), t(".yahoo_finance_hint")],
-          ["tiingo", t(".providers.tiingo"), t(".requires_api_key")],
-          ["eodhd", t(".providers.eodhd"), t(".requires_api_key_eodhd")],
-          ["alpha_vantage", t(".providers.alpha_vantage"), t(".requires_api_key_alpha_vantage")],
           ["mfapi", t(".providers.mfapi"), t(".mfapi_hint")],
           ["binance_public", t(".providers.binance_public"), t(".binance_public_hint")],
-          ["moex_public", t(".providers.moex_public"), t(".moex_public_hint")],
-          ["tinkoff_invest", t(".providers.tinkoff_invest"), t(".tinkoff_invest_hint")],
-          ["mansa", t(".providers.mansa"), t(".requires_api_key_mansa")],
         ].each do |value, label, hint| %>
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox"

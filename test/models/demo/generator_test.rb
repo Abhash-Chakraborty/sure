@@ -12,7 +12,7 @@ class Demo::GeneratorTest < ActiveSupport::TestCase
       User.any_instance.stubs(:ai_available?).returns(false)
       generator = Demo::Generator.new(seed: 42)
       %i[create_realistic_categories! create_realistic_accounts! create_realistic_transactions!
-         generate_budget_auto_fill! generate_goals! create_monitoring_api_key!].each do |step|
+         generate_budget_auto_fill! create_sample_rules! generate_goals! create_monitoring_api_key!].each do |step|
         generator.stubs(step)
       end
 
@@ -26,48 +26,6 @@ class Demo::GeneratorTest < ActiveSupport::TestCase
         assert user.preview_features_enabled?, "#{user.role} should have preview access"
       end
     end
-  end
-
-  test "default demo data links the public on-chain wallets without reading a chain" do
-    # WebMock refuses any request, so this also proves generation stays offline.
-    User.find_by!(email: "user@example.com").update!(email: "existing-user@example.com")
-    generator = Demo::Generator.new(seed: 42)
-    %i[create_realistic_categories! create_realistic_accounts! create_realistic_transactions!
-       generate_budget_auto_fill! generate_goals! create_monitoring_api_key!].each do |step|
-      generator.stubs(step)
-    end
-
-    generator.generate_default_data!(skip_clear: true)
-
-    item = User.find_by!(email: "user@example.com").family.onchain_wallet_item
-    expected = Demo::Generator::ONCHAIN_DEMO_WALLETS.map { |wallet| [ wallet[:chain], Onchain::Chains.canonical_address(wallet[:chain], wallet[:address]) ] }
-    assert_equal expected.sort, item.wallet_keys.sort
-    assert_equal %w[BTC ETH SOL USDC USDC USDT USDT], item.onchain_wallet_accounts.pluck(:symbol).sort
-    assert item.onchain_wallet_accounts.all? { |row| row.account&.accountable_type == "Crypto" }
-    assert_equal 1, item.syncs.count, "the item sync fills in the real balances"
-  end
-
-  test "production sample reset includes Wallet in the normal accounts and transactions phases" do
-    Rails.stubs(:env).returns(ActiveSupport::EnvironmentInquirer.new("production"))
-    generator = Demo::Generator.new(seed: 42)
-    stub_non_wallet_activity(generator)
-    @family.expects(:sync_later)
-
-    generator.generate_new_user_data_for!(@family, email: @admin_user.email)
-
-    assert_wallet_demo_activity
-  end
-
-  test "production default demo includes Wallet in the normal accounts and transactions phases" do
-    Rails.stubs(:env).returns(ActiveSupport::EnvironmentInquirer.new("production"))
-    generator = Demo::Generator.new(seed: 42)
-    generator.stubs(:create_family_and_users!).returns(@family)
-    generator.stubs(:create_monitoring_api_key!)
-    stub_non_wallet_activity(generator)
-
-    generator.generate_default_data!(skip_clear: true)
-
-    assert_wallet_demo_activity
   end
 
   test "sample data generates loan payments before its transaction commits" do
@@ -123,6 +81,26 @@ class Demo::GeneratorTest < ActiveSupport::TestCase
 
     assert_equal existing_key, monitoring_key
     assert_equal 1, ApiKey.where(display_key: ApiKey::DEMO_MONITORING_KEY).count
+  end
+
+  test "sample rules come in groups and are all switched off" do
+    generator = Demo::Generator.new(seed: 42)
+    generator.send(:create_realistic_categories!, @family)
+    existing_rule_ids = @family.rules.ids
+    generator.send(:create_sample_rules!, @family)
+
+    rules = @family.rules.where.not(id: existing_rule_ids).ordered.includes(:rule_group, :conditions, :actions).to_a
+    assert_equal 5, rules.size
+    assert rules.none?(&:active?), "sample rules must stay off until someone switches them on"
+    assert_equal [ "Groceries", "Subscriptions" ], @family.rule_groups.order(:name).pluck(:name)
+    assert rules.any? { |rule| rule.rule_group.nil? }, "the demo should also show a rule without a group"
+
+    netflix = rules.find { |rule| rule.conditions.first.value == "Netflix" }
+    assert_equal "Subscriptions", netflix.rule_group.name
+    assert_equal @family.categories.find_by!(name: "Entertainment").id, netflix.actions.first.value
+
+    # Each group's rules sit directly below it, in the order the page shows.
+    assert_equal @family.rules.ordered.to_a, Rule::Layout.new(@family).items.flat_map { |item| item.group? ? item.rules : [ item.rule ] }
   end
 
   # Regression for a `rake demo_data:default` crash: the goal-seeding matrix
@@ -252,8 +230,6 @@ class Demo::GeneratorTest < ActiveSupport::TestCase
          generate_budget_auto_fill! generate_goals! sync_family_accounts!].each do |step|
         generator.stubs(step)
       end
-      Demo::FinancekitGenerator.any_instance.stubs(:create_accounts!)
-      Demo::FinancekitGenerator.any_instance.stubs(:create_transactions!)
     end
 
     def assert_demo_loan_payments
@@ -269,35 +245,6 @@ class Demo::GeneratorTest < ActiveSupport::TestCase
         assert_equal due.size, payments.count, "#{name} should record every scheduled payment"
         assert_equal(-due.sum { |payment| payment.principal.amount }, payments.sum(:amount))
       end
-    end
-
-    # Exercise the actual account/transaction orchestration without generating
-    # years of unrelated spending, securities, budgets and goals in each test.
-    def stub_non_wallet_activity(generator)
-      %i[load_securities! generate_salary_history! generate_housing_transactions!
-         generate_food_transactions! generate_transportation_transactions!
-         generate_entertainment_transactions! generate_shopping_transactions!
-         generate_healthcare_transactions! generate_travel_transactions!
-         generate_personal_care_transactions! generate_investment_transactions!
-         generate_major_purchases! generate_transfers_and_payments! generate_loan_payments!
-         generate_regular_expenses! generate_legacy_transactions! generate_crypto_and_misc_assets!
-         generate_budget_auto_fill! generate_goals! sync_family_accounts!].each do |step|
-        generator.stubs(step)
-      end
-    end
-
-    def assert_wallet_demo_activity
-      item = @family.financekit_items.find_by!(enrollment_id: Demo::FinancekitGenerator::ENROLLMENT_ID)
-      assert_equal [ "Apple Card", "Apple Cash", "Nancy's Apple Cash" ], item.accounts.order(:name).pluck(:name)
-      assert item.accounts.all?(&:linked?)
-      assert item.accounts.all? { |account| account.entries.exists? }
-      assert item.last_imported_at
-      card = item.accounts.find_by!(name: "Apple Card")
-      checking = @family.accounts.find_by!(name: "Chase Premier Checking")
-      assert_equal checking, card.entries.find_by!(name: "Apple Card Payment").entryable.transfer.from_account
-      assert item.accounts.find_by!(name: "Apple Cash").entries.exists?(name: "Apple Card Daily Cash")
-      assert item.accounts.find_by!(name: "Nancy's Apple Cash").entries.exists?(name: "Movie Theater")
-      assert_not @family.accounts.exists?(name: "Wallet Demo Checking")
     end
 
     def create_user!(family, email)

@@ -277,7 +277,7 @@ class ExchangeRate::ImporterTest < ActiveSupport::TestCase
   test "handles rate limit error gracefully" do
     ExchangeRate.delete_all
 
-    rate_limit_error = Provider::TwelveData::RateLimitError.new("Rate limit exceeded")
+    rate_limit_error = Provider::Frankfurter::RateLimitError.new("Rate limit exceeded")
 
     @provider.expects(:fetch_exchange_rates).once.returns(
       provider_error_response(rate_limit_error)

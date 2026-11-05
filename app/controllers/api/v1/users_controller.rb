@@ -69,8 +69,6 @@ class Api::V1::UsersController < Api::V1::BaseController
     end
 
     def reset_target_counts(family)
-      counts = Family::FinancialDataReset.new(family: family, dry_run: true, confirmed: false).call.before_counts.except(:syncs)
-
-      counts.merge(plaid_items: family.plaid_items.count)
+      Family::FinancialDataReset.new(family: family, dry_run: true, confirmed: false).call.before_counts.except(:syncs)
     end
 end

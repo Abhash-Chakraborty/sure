@@ -13,8 +13,6 @@ env:
   RAILS_ENV: test
   DATABASE_URL: postgres://postgres:postgres@localhost:5432 # pipelock:ignore
   REDIS_URL: redis://localhost:6379
-  PLAID_CLIENT_ID: foo
-  PLAID_SECRET: bar
 
 jobs:
   check_openai:

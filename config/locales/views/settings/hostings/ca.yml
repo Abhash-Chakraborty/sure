@@ -2,24 +2,6 @@
 ca:
   settings:
     hostings:
-      alpha_vantage_settings:
-        description: Introdueix la clau API d'Alpha Vantage. Admet ETF europeus a
-          London Stock Exchange, XETRA i altres mercats.
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn
-          ALPHA_VANTAGE_API_KEY.
-        label: Clau API
-        no_health_check_note: La comprovació de l'estat de la connexió no està disponible
-          per a aquest proveïdor a causa del límit estricte de sol·licituds.
-        placeholder: Introdueix aquí la teva clau API d'Alpha Vantage
-        rate_limit_warning: El nivell gratuït d'Alpha Vantage està limitat a 25 crides
-          d'API al dia. Útil com a proveïdor complementari per a ETF europeus no disponibles
-          en altres proveïdors.
-        show_details: "(mostra detalls)"
-        step_1_html: Visita <a href="https://www.alphavantage.co/support/#api-key"
-          target="_blank" rel="noopener noreferrer" class="underline">alphavantage.co</a>
-          i obté la teva clau API gratuïta.
-        step_2: Copia la clau API i enganxa-la a sota.
-        title: Alpha Vantage
       assistant_settings:
         agent_id_help: Encamina cap a un agent específic quan el proveïdor n'allotja
           diversos. Deixa-ho en blanc per al predeterminat.
@@ -82,24 +64,6 @@ ca:
         external_assistant_disconnected: Assistent extern desconnectat
       ensure_super_admin_for_onboarding:
         not_authorized: No estàs autoritzat/da a fer aquesta acció
-      eodhd_settings:
-        description: Introdueix el token d'API proporcionat per EODHD. Admet ETF europeus
-          a LSE, XETRA i altres mercats internacionals.
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn
-          EODHD_API_KEY.
-        label: Token d'API
-        placeholder: Introdueix aquí el teu token d'API d'EODHD
-        rate_limit_warning: El nivell gratuït d'EODHD està limitat a 20 crides d'API
-          al dia. Útil com a proveïdor complementari per a ETF europeus no disponibles
-          en altres proveïdors.
-        show_details: "(mostra detalls)"
-        step_1_html: Visita <a href="https://eodhd.com/register" target="_blank" rel="noopener
-          noreferrer" class="underline">eodhd.com</a> i crea un compte gratuït.
-        step_2_html: Ves al teu <a href="https://eodhd.com/cp/dashboard" target="_blank"
-          rel="noopener noreferrer" class="underline">tauler</a> per trobar el teu
-          token d'API.
-        step_3: Copia el teu token d'API i enganxa'l a sota.
-        title: EODHD
       invite_code_settings:
         default_family_description: Posa els nous usuaris en aquesta família/grup
           només si no tenen invitació.
@@ -159,7 +123,6 @@ ca:
         ai_response_timeout_help: 'Per defecte: 90. Només s''aplica al vigilant de tot el torn del xat, així que calcula''l com una suma: (1 + ASSISTANT_MAX_TOOL_CALL_ITERATIONS) × temps d''espera de la sol·licitud, més el temps d''execució de les eines i de cua. AI_RESPONSE_TIMEOUT té prioritat sobre aquest camp.'
       provider_selection:
         binance_public_hint: gratuït, sense clau API — només cripto (BTC, ETH, etc.)
-        moex_public_hint: gratuït, sense clau API — accions, fons i bons russos (MOEX), inclou canvi RUB
         description: Tria un únic proveïdor per obtenir tipus de canvi de divisa.
         env_configured_message: La selecció de proveïdor està desactivada perquè hi
           ha variables d'entorn configurades. Per activar la selecció aquí, elimina
@@ -170,28 +133,15 @@ ca:
         exchange_rate_title: Proveïdor de tipus de canvi
         mfapi_hint: gratuït, sense clau API — només fons mutus indis
         providers:
-          alpha_vantage: Alpha Vantage
           binance_public: Binance
-          moex_public: MOEX
-          eodhd: EODHD
           mfapi: MFAPI.in
-          tiingo: Tiingo
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-          tinkoff_invest: T-Invest (T-Bank)
           frankfurter: Frankfurter
-          mansa: Mansa
-        requires_api_key: requereix clau API
-        requires_api_key_alpha_vantage: requereix clau API, límit de 25 crides/dia
-        requires_api_key_eodhd: requereix clau API, límit de 20 crides/dia
         securities_description: Activa un o més proveïdors per obtenir preus d'accions,
           ETF i fons d'inversió. En cercar, es consulten tots els proveïdors activats
           i es combinen els resultats.
         securities_title: Proveïdors de valors
-        twelve_data_hint: requereix clau API, 800 crèdits/dia
         yahoo_finance_hint: gratuït, no cal clau API
-        tinkoff_invest_hint: requereix un token de només lectura -- preus d'accions, fons i bons russos + logotips de marques
-        requires_api_key_mansa: requereix clau API, nivell gratuït de 100 crides/dia -- borses africanes (NGX, JSE, NSE, GSE, BRVM i més)
       show:
         ai_assistant: Assistent d'IA
         clear_cache: Neteja la memòria cau de dades
@@ -209,7 +159,6 @@ ca:
         invites: Codis d'invitació
         sync_settings: Configuració de sincronització
         title: Self hosting
-        property_valuation_providers: Proveïdors de valoració d'immobles
       sync_auto_sync_scheduler!:
         scheduler_sync_failed: La configuració s'ha desat, però no s'ha pogut actualitzar
           la planificació de sincronització. Torna-ho a provar o revisa els registres
@@ -221,48 +170,6 @@ ca:
         auto_sync_time_description: Especifica l'hora del dia en què s'ha de produir
           la sincronització automàtica.
         auto_sync_time_label: Hora de sincronització (HH:MM)
-        env_configured_message: Aquesta configuració està desactivada perquè una variable
-          d'entorn del proveïdor (SIMPLEFIN_INCLUDE_PENDING o PLAID_INCLUDE_PENDING)
-          està establerta. Elimina-la per activar aquesta opció.
-        include_pending_description: Quan està activat, les transaccions pendents
-          (no liquidades) s'importaran i es conciliaran automàticament quan es comptabilitzin.
-          Desactiva-ho si el teu banc proporciona dades pendents poc fiables.
-        include_pending_label: Inclou transaccions pendents
-      tiingo_settings:
-        description: Introdueix el token d'API proporcionat per Tiingo. El nivell
-          gratuït admet 50 símbols únics per hora amb més de 30 anys d'historial.
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn
-          TIINGO_API_KEY.
-        label: Token d'API
-        placeholder: Introdueix aquí el teu token d'API de Tiingo
-        show_details: "(mostra detalls)"
-        step_1_html: Visita <a href="https://www.tiingo.com" target="_blank" rel="noopener
-          noreferrer" class="underline">tiingo.com</a> i crea un compte gratuït.
-        step_2_html: Ves a la pàgina <a href="https://www.tiingo.com/account/api/token"
-          target="_blank" rel="noopener noreferrer" class="underline">Token d'API</a>.
-        step_3: Copia el teu token d'API i enganxa'l a sota.
-        title: Tiingo
-      twelve_data_settings:
-        api_calls_used: "%{used} / %{limit} crides diàries d'API utilitzades (%{percentage})"
-        description: Introdueix la clau API proporcionada per Twelve Data
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn
-          TWELVE_DATA_API_KEY.
-        label: Clau API
-        placeholder: Introdueix aquí la teva clau API
-        plan: Pla %{plan}
-        plan_upgrade_warning_description: Els següents símbols de la teva cartera
-          no poden sincronitzar preus amb el teu pla actual de Twelve Data.
-        plan_upgrade_warning_title: Alguns símbols requereixen un pla de pagament
-        requires_plan: requereix el pla %{plan}
-        show_details: "(mostra detalls)"
-        step_1_html: Visita <a href="https://twelvedata.com/register" target="_blank"
-          rel="noopener noreferrer" class="underline">twelvedata.com</a> i crea un
-          compte de desenvolupador gratuït de Twelve Data.
-        step_2_html: Ves a la pàgina <a href="https://twelvedata.com/account/api-keys"
-          target="_blank" rel="noopener noreferrer" class="underline">claus d'API</a>.
-        step_3: Revela la teva Secret Key i enganxa-la a sota.
-        title: Twelve Data
-        view_pricing: Veure preus de Twelve Data
       update:
         failure: Valor de configuració invàlid
         invalid_llm_budget: "%{field} ha de ser un nombre enter ≥ %{minimum}."
@@ -316,38 +223,3 @@ ca:
         model_label: Model per defecte (opcional)
         model_placeholder: claude-sonnet-4-6 (per defecte)
         model_help: S'utilitza per al xat i el processament de PDF. Les operacions per lots (categorització, detecció de comerços) utilitzen Haiku per defecte per reduir costos.
-      rentcast_settings:
-        title: RentCast
-        description: Introdueix la teva clau API de RentCast per consultar dades i estimacions de valor d'immobles dels EUA en afegir un immoble. El nivell gratuït està limitat a 50 sol·licituds d'API al mes, compartides entre les consultes d'immobles i les actualitzacions diàries de la valoració. Amb un pla de pagament, augmenta el límit amb la variable d'entorn RENTCAST_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn RENTCAST_API_KEY.
-        label: Clau API
-        placeholder: Introdueix aquí la teva clau API de RentCast
-        usage: '%{used} de %{limit} sol·licituds mensuals utilitzades'
-      realie_settings:
-        title: Realie
-        description: Introdueix la teva clau API de Realie per consultar dades i estimacions de valor d'immobles dels EUA en afegir un immoble. El nivell gratuït està limitat a 25 sol·licituds d'API al mes, compartides entre les consultes d'immobles i les actualitzacions diàries de la valoració. Amb un pla de pagament, augmenta el límit amb la variable d'entorn REALIE_MAX_REQUESTS_PER_MONTH.
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn REALIE_API_KEY.
-        label: Clau API
-        placeholder: Introdueix aquí la teva clau API de Realie
-        usage: '%{used} de %{limit} sol·licituds mensuals utilitzades'
-      tinkoff_invest_settings:
-        title: T-Invest (T-Bank)
-        description: Introdueix un token d'API de T-Invest de només lectura. S'utilitza per obtenir logotips de marques per als valors (inclosos fons i bons, fins i tot quan MOEX en proporciona els preus) i, si està activat a dalt, preus d'instruments russos.
-        moex_only_notice: 'No està activat per a preus a dalt: T-Invest s''utilitza per obtenir logotips de marques per a tots els teus valors sempre que hi hagi un token configurat, independentment de la casella de dalt.'
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn TINKOFF_INVEST_API_KEY.
-        label: Token d'API
-        placeholder: Introdueix aquí el teu token d'API de T-Invest
-        show_details: (mostra detalls)
-        step_1: Obre les inversions de T-Bank i ves a Configuració i després a Tokens d'API (cal tenir un compte de valors obert a T-Bank).
-        step_2: Crea un token amb accés de només lectura.
-        step_3: Copia el token i enganxa'l a sota.
-      mansa_settings:
-        title: Mansa
-        description: Introdueix la clau API de Mansa API. Admet 20 borses africanes, incloses NGX (Nigerian Exchange), JSE, NSE (Kenya), GSE (Ghana) i BRVM, diverses de les quals no cobreix cap altre proveïdor d'aquí.
-        env_configured_message: Configurat correctament mitjançant la variable d'entorn MANSA_API_KEY.
-        label: Clau API
-        placeholder: Introdueix aquí la teva clau API de Mansa
-        show_details: (mostra detalls)
-        step_1_html: Visita <a href="https://mansaapi.com" target="_blank" rel="noopener noreferrer" class="underline">mansaapi.com</a> i obtén la teva clau API gratuïta -- no cal targeta.
-        step_2: Copia la clau API i enganxa-la a sota.
-        rate_limit_warning: El nivell gratuït de Mansa està limitat a 100 crides d'API al dia i només ofereix cotitzacions actuals -- els preus històrics requereixen un pla de pagament.

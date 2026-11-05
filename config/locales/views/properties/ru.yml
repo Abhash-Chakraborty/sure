@@ -100,9 +100,6 @@ ru:
         trend: Тренд
         unknown: Неизвестно
         year_built: Год постройки
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
     form_tabs:
       address: Адрес
       overview: Обзор

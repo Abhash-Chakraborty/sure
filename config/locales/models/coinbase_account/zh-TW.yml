@@ -1,5 +1,0 @@
----
-zh-TW:
-  coinbase:
-    processor:
-      paid_via: 透過 %{method} 付款

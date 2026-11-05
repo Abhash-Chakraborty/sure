@@ -28,7 +28,7 @@ class MerchantsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shows a provider merchant assigned to the family's transactions" do
-    provider = ProviderMerchant.create!(name: "Coffee Co", source: "plaid")
+    provider = ProviderMerchant.create!(name: "Coffee Co", source: "synth")
     create_transaction(account: accounts(:depository), name: "Morning coffee", merchant: provider)
 
     get merchant_url(provider)
@@ -62,7 +62,7 @@ class MerchantsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "does not show a provider merchant used only on accounts the user cannot access" do
-    provider = ProviderMerchant.create!(name: "Private Co", source: "plaid")
+    provider = ProviderMerchant.create!(name: "Private Co", source: "synth")
     create_transaction(account: accounts(:investment), name: "Private purchase", merchant: provider)
 
     sign_in users(:family_member)

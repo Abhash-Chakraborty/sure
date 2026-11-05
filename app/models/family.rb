@@ -1,20 +1,5 @@
 class Family < ApplicationRecord
-  has_many :financekit_items, dependent: :destroy
-  has_many :financekit_account_lineages, dependent: :destroy
-  has_many :financekit_conflicts, dependent: :destroy
-
-  include FioConnectable
   include Syncable, AutoTransferMatchable, Subscribeable, VectorSearchable
-  include PlaidConnectable, SimplefinConnectable, LunchflowConnectable, AkahuConnectable, EnableBankingConnectable, TruelayerConnectable
-  include CoinbaseConnectable, BinanceConnectable, KrakenConnectable, CoinspotConnectable, CoinstatsConnectable, SnaptradeConnectable, MercuryConnectable, BrexConnectable, SophtronConnectable
-  include IndexaCapitalConnectable, IbkrConnectable, WiseConnectable
-  include UpConnectable
-  include MonobankConnectable
-  include Trading212Connectable
-  include TradeRepublicConnectable
-  include QuestradeConnectable
-  include RedbarkConnectable
-  include OnchainWalletConnectable
   include AiPromptable
 
   DATE_FORMATS = [
@@ -60,6 +45,7 @@ class Family < ApplicationRecord
   has_many :transactions, through: :accounts
   has_many :rules, dependent: :destroy
   has_many :payment_messages, dependent: :destroy
+  has_many :rule_groups, dependent: :destroy
   has_many :trades, through: :accounts
   has_many :holdings, through: :accounts
 
@@ -290,21 +276,6 @@ class Family < ApplicationRecord
     nil
   end
 
-  # Callers should still enqueue the normal family sync immediately. Plaid's
-  # refresh is asynchronous, and its polling chain schedules a distinct item
-  # sync after the cursor advances (or after the bounded polling fallback), so
-  # fresh transactions are imported even if the baseline family sync runs first.
-  def request_plaid_transactions_refreshes_later(source:)
-    enqueued_job = PlaidTransactionsRefreshAllJob.perform_later(self, source: source)
-    return enqueued_job if enqueued_job
-
-    capture_plaid_refresh_enqueue_failure(source:, error_class: "ActiveJob::EnqueueError")
-    nil
-  rescue => error
-    capture_plaid_refresh_enqueue_failure(source:, error_class: error.class.name)
-    nil
-  end
-
   def custom_enabled_currencies?
     enabled_currencies.present?
   end
@@ -327,22 +298,6 @@ class Family < ApplicationRecord
     enabled_currency_objects(extra:).reject { |currency| currency.iso_code == primary_currency_code }
   end
 
-  def capture_plaid_refresh_enqueue_failure(source:, error_class:)
-    DebugLogEntry.capture(
-      category: "provider_sync",
-      level: "warn",
-      message: "Plaid transaction refresh could not be enqueued; continuing with normal sync",
-      source: source,
-      provider_key: "plaid",
-      family: self,
-      metadata: { error_class: error_class }
-    )
-  rescue => logging_error
-    Rails.logger.warn(
-      "Plaid refresh enqueue diagnostic failed: #{logging_error.class.name}"
-    )
-  end
-  private :capture_plaid_refresh_enqueue_failure
 
 
   def moniker_label
@@ -573,11 +528,13 @@ class Family < ApplicationRecord
   end
 
   # A rule with no conditions at the top of the order, the others moving
-  # down one.
+  # down one. Rule groups share the rules' positions (see Rule::Layout), so
+  # they move too.
   def add_classifier_rule!(action_type, active: true)
     Rule.transaction do
       Rule.lock_positions!(self)
       rules.update_all("position = position + 1")
+      rule_groups.update_all("position = position + 1")
       rules.create!(name: self.class.classifier_rule_name(action_type), resource_type: "transaction", active: active, position: 1,
                     actions_attributes: [ { action_type: action_type } ])
     end

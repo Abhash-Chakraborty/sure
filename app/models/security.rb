@@ -93,7 +93,9 @@ class Security < ApplicationRecord
   validates :ticker, presence: true
   validates :ticker, uniqueness: { scope: :exchange_operating_mic, case_sensitive: false }
   validates :kind, inclusion: { in: KINDS }
-  validates :price_provider, inclusion: { in: ->(_) { Security.valid_price_providers } }, allow_nil: true
+  # Checked only on change: rows can still name a provider that has since been
+  # removed, and those must stay saveable until they are remapped.
+  validates :price_provider, inclusion: { in: ->(_) { Security.valid_price_providers } }, allow_nil: true, if: :price_provider_changed?
   validates :asset_class, inclusion: { in: ASSET_CLASSES }, allow_nil: true
   validates :asset_sub_class, inclusion: { in: ASSET_SUB_CLASSES }, allow_nil: true
   validates :classification_source, inclusion: { in: CLASSIFICATION_SOURCES }, allow_nil: true

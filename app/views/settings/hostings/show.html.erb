@@ -48,31 +48,6 @@
       <% if @show_yahoo_finance_settings %>
         <%= render "settings/hostings/yahoo_finance_settings" %>
       <% end %>
-      <% if @show_twelve_data_settings %>
-        <%= render "settings/hostings/twelve_data_settings" %>
-      <% end %>
-      <% if @show_tiingo_settings %>
-        <%= render "settings/hostings/tiingo_settings" %>
-      <% end %>
-      <% if @show_eodhd_settings %>
-        <%= render "settings/hostings/eodhd_settings" %>
-      <% end %>
-      <% if @show_alpha_vantage_settings %>
-        <%= render "settings/hostings/alpha_vantage_settings" %>
-      <% end %>
-      <% if @show_tinkoff_invest_settings %>
-        <%= render "settings/hostings/tinkoff_invest_settings" %>
-      <% end %>
-      <% if @show_mansa_settings %>
-        <%= render "settings/hostings/mansa_settings" %>
-      <% end %>
-    </div>
-  <% end %>
-  <%= settings_section title: t(".property_valuation_providers") do %>
-    <div class="space-y-6">
-      <%= render "settings/hostings/rentcast_settings" %>
-      <%= render "settings/hostings/realie_settings" %>
-      <%= render "settings/hostings/chimnie_settings" %>
     </div>
   <% end %>
   <%= settings_section title: t(".sync_settings") do %>

@@ -311,7 +311,6 @@ ca:
       delete_subtitle: Això eliminarà permanentment la transacció, afectarà els teus
         saldos històrics i no es podrà desfer.
       delete_title: Elimina la transacció
-      description: Descripció
       details: Detalls
       exclude: Exclou
       exclude_description: Les transaccions excloses es retiraran dels càlculs i informes
@@ -323,7 +322,6 @@ ca:
         d'import es calcula automàticament a partir dels últims 6 mesos de transaccions
         similars.
       mark_recurring_title: Transacció recurrent
-      memo: Memo
       merchant_label: Comerç
       merge_duplicate: Sí, fusiona-les
       name_label: Nom
@@ -336,7 +334,6 @@ ca:
       one_time_title: "%{type} puntual"
       open_matcher: Obre l'aparellador
       overview: Resum
-      payee: Beneficiari
       pending_duplicate_merger_button: Obre el fusionador
       pending_duplicate_merger_description: Fusiona manualment aquesta transacció
         pendent amb la seva versió comptabilitzada.
@@ -345,7 +342,6 @@ ca:
         que la transacció comptabilitzada a sota. Si és així, fusiona-les per evitar comptabilitzar
         dues vegades.
       potential_duplicate_title: S'ha detectat un duplicat possible
-      provider_extras: Extres del proveïdor
       settings: Configuració
       tab_transactions: Transaccions
       tab_upcoming: Properes

@@ -2,18 +2,6 @@
   # Parameters:
   # - configuration: Provider::Configurable::Configuration object
   # - provider_setup_encryption_warning: whether to warn before saving credentials
-  provider_key = configuration.provider_key.to_s
-
-  setup_steps_data =
-    if %w[plaid plaid_eu].include?(provider_key)
-      plaid_link = link_to("Plaid Dashboard", "https://dashboard.plaid.com/team/keys", target: "_blank", rel: "noopener noreferrer", class: "text-link underline")
-      step_1_key = "settings.providers.#{provider_key}_panel.step_1_html"
-      [
-        t(step_1_key, link: plaid_link),
-        t("settings.providers.plaid_panel.step_2"),
-        t("settings.providers.plaid_panel.step_3")
-      ]
-    end
 %>
 
 <div class="space-y-4">
@@ -27,9 +15,7 @@
     <% end %>
   <% end %>
 
-  <% if setup_steps_data %>
-    <%= render "settings/providers/setup_steps", steps: setup_steps_data %>
-  <% elsif configuration.provider_description.present? %>
+  <% if configuration.provider_description.present? %>
     <div class="text-sm text-secondary prose prose-sm">
       <%= markdown(configuration.provider_description).html_safe %>
     </div>

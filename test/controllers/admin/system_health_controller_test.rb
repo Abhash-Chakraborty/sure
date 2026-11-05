@@ -825,14 +825,13 @@ class Admin::SystemHealthControllerTest < ActionDispatch::IntegrationTest
     ApplicationMailer.stubs(:smtp_settings).returns({ address: nil, port: nil, password: "smtp-secret" })
     ApplicationMailer.stubs(:default).returns({ from: "Sure <sender@sure.local>" })
     ApplicationMailer.stubs(:default_url_options).returns({})
+    # A selection left over from a provider that no longer exists is unrecognized.
     Setting.stubs(:enabled_securities_providers).returns([ "twelve_data", "yahoo_finance" ])
-    Setting.stubs(:twelve_data_api_key).returns(nil)
     Setting.stubs(:exchange_rate_provider).returns("twelve_data")
-    Provider::TwelveData.any_instance.expects(:usage).never
     Provider::YahooFinance.any_instance.expects(:health_status).never
     AiHealth.expects(:new).never
 
-    ClimateControl.modify("TWELVE_DATA_API_KEY" => nil, "EXCHANGE_RATE_PROVIDER" => nil) do
+    ClimateControl.modify("EXCHANGE_RATE_PROVIDER" => nil) do
       get admin_system_health_url(tab: "configuration")
     end
 
@@ -845,8 +844,8 @@ class Admin::SystemHealthControllerTest < ActionDispatch::IntegrationTest
     end
     assert_select "[data-testid='configuration-securities']" do
       assert_select "span", text: "Incomplete configuration"
-      assert_select "dt", text: "Twelve Data"
-      assert_select "dd", text: "API key missing"
+      assert_select "dt", text: "Unrecognized provider selection"
+      assert_select "dd", text: "Invalid selection"
       assert_select "dt", text: "Yahoo Finance"
     end
     assert_select "[data-testid='configuration-exchange_rates']" do

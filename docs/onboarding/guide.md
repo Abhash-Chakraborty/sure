@@ -32,23 +32,9 @@ When you arrive at the main dashboard, showing **No accounts yet**, you're all s
 <br />
 
 > **Note:** The next sections of this guide cover how to **manually add accounts and transactions** in Sure.<br />
-> If you'd rather connect a data provider, Sure supports many of them, including:
+> You can also bring in history from a CSV or PDF statement with **Import**.
 >
-> - [**Plaid**](../providers/plaid.md) (US and EU)
-> - [**SimpleFIN**](https://beta-bridge.simplefin.org/)
-> - [**Lunch Flow**](https://www.lunchflow.app/)
-> - [**Enable Banking**](https://enablebanking.com/) (beta)
-> - [**TrueLayer**](../providers/truelayer.md) (UK banks and cards, alpha)
-> - [**Monobank**](../providers/monobank.md) (Ukrainian cards and jars)
-> - [**Fio banka**](../providers/fio.md) (Czech bank)
-> - [**Redbark**](../providers/redbark.md) (Australian banks)
-> - [**Up**](https://up.com.au/) (Australian bank)
-> - [**Akahu**](https://www.akahu.nz/) (New Zealand banks)
-> - [**CoinStats**](https://coinstats.app/) (beta, crypto)
->
-> See **Settings > Bank sync** in your instance for the full list of supported providers and their setup options. Only **admin** users can connect a provider.
->
-> Even if you use an integration, we still recommend reading through this guide to understand **account types** and how they work in Sure.
+> Even if you import your data, we still recommend reading through this guide to understand **account types** and how they work in Sure.
 
 
 ## 2. Account Types in Sure
@@ -185,7 +171,7 @@ Sure tracks cost basis from three sources:
 | --- | --- |
 | **Manual** | User-entered values that you set directly |
 | **Calculated** | Computed from your buy trades and transaction history |
-| **Provider** | Imported from your financial institution (Plaid, SimpleFin, etc.) |
+| **Provider** | Imported from a connected data provider |
 
 #### Priority Hierarchy
 

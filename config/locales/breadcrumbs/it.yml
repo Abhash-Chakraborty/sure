@@ -10,22 +10,17 @@ it:
     appearance: Aspetto
     appearances: Aspetto
     bank_sync: Sincronizzazione bancaria
-    binance_items: Binance
-    brex_items: Brex
     budget_categories: Categorie budget
     budgets: Budget
     categories: Categorie
     categorize: Categorizza
     chats: Chat
-    coinbase_items: Coinbase
-    coinstats_items: CoinStats
     credit_cards: Carte di credito
     cryptos: Crypto
     dashboard: Dashboard
     debug: Debug
     debugs: Debug
     depositories: Conti correnti
-    enable_banking_items: Enable Banking
     exports: Esportazioni
     family_exports: Esportazioni
     family_merchants: Esercenti
@@ -33,22 +28,17 @@ it:
     holdings: Portafoglio
     home: Home
     hostings: Self-Hosting
-    ibkr_items: Interactive Brokers
     impersonation_sessions: Impersonazioni
     imports: Importazioni
-    indexa_capital_items: Indexa Capital
     intro: Introduzione
     investments: Investimenti
     invitations: Inviti
     invite_codes: Codici invito
-    kraken_items: Kraken
     llm_usage: Utilizzo LLM
     llm_usages: Utilizzo LLM
     loans: Prestiti
-    lunchflow_items: Lunch Flow
     mcp: Server MCP
     merchants: Esercenti
-    mercury_items: Mercury
     messages: Messaggi
     mfa: Autenticazione a due fattori
     oidc_accounts: Account SSO
@@ -57,7 +47,6 @@ it:
     other_liabilities: Altre passività
     payments: Pagamenti
     pending_duplicate_merges: Revisione duplicati
-    plaid_items: Plaid
     plan: Piano
     preferences: Preferenze
     profile: Informazioni profilo
@@ -72,9 +61,6 @@ it:
     security: Sicurezza
     self_hosting: Self-Hosting
     sessions: Accedi
-    simplefin_items: SimpleFIN
-    snaptrade_items: SnapTrade
-    sophtron_items: Sophtron
     splits: Suddivisione
     sso_identities: Connessioni SSO
     sso_providers: Provider SSO

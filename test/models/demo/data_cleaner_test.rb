@@ -1,12 +1,6 @@
 require "test_helper"
 
 class Demo::DataCleanerTest < ActiveSupport::TestCase
-  setup do
-    # Fixture families hold Plaid items, and destroying one asks Plaid to
-    # remove it. That call is not what these tests are about.
-    Provider::Registry.stubs(:plaid_provider_for_region).returns(nil)
-  end
-
   # The generator gives its demo family a fake Stripe subscription, and a
   # family cancels its subscription at Stripe before it goes. The cancel always
   # failed, so `rake demo_data:default SKIP_CLEAR=0` could never remove the

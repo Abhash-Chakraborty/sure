@@ -6,7 +6,6 @@ ru:
         success: Запись успешно удалена.
   accounts:
     account:
-      change_simplefin_account: Изменить счёт SimpleFIN
       complete_setup: Завершить настройку
       default_label: По умолчанию
       delete: Удалить счёт
@@ -16,7 +15,6 @@ ru:
       exclude_from_reports: Исключить из всех отчётов
       excluded_from_reports_indicator: Исключено из отчётов
       include_in_reports: Включить в отчёты
-      link_lunchflow: Связать с Lunch Flow
       link_provider: Связать с провайдером
       remove_default: Снять с умолчания
       set_default: Установить по умолчанию
@@ -88,7 +86,6 @@ ru:
         connected_entry: Связать счёт
         connected_entry_eu: Связать счёт ЕС
         link_with_provider: Связать с %{provider}
-        lunchflow_entry: Связать счёт Lunch Flow
         manual_entry: Ввести баланс счёта
         title: Как вы хотите добавить это?
       title: Что вы хотите добавить?

@@ -106,10 +106,6 @@ uk:
       tab_upcoming: Майбутні
       uncategorized: "(без категорії)"
       additional_details: "Додаткові відомості"
-      payee: "Одержувач"
-      description: "Опис"
-      memo: "Примітка"
-      provider_extras: "Додаткові відомості від постачальника"
       transfer_or_debt_payment: "Переказ або сплата боргу?"
       open_matcher: "Відкрити зіставлення"
       convert: "Перетворити"

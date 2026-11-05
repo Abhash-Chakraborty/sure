@@ -6,7 +6,6 @@ pl:
         success: Wpis został usunięty.
   accounts:
     account:
-      change_simplefin_account: Zmień konto SimpleFIN
       complete_setup: Dokończ konfigurację
       default_label: Domyślne
       delete: Usuń konto
@@ -16,7 +15,6 @@ pl:
       exclude_from_reports: Wyklucz ze wszystkich raportów
       excluded_from_reports_indicator: Wykluczone z raportów
       include_in_reports: Uwzględnij w raportach
-      link_lunchflow: Połącz z Lunch Flow
       link_provider: Połącz z dostawcą
       remove_default: Usuń status domyślnego
       set_default: Ustaw jako domyślne
@@ -84,7 +82,6 @@ pl:
         connected_entry: Połącz konto
         connected_entry_eu: Połącz konto z UE
         link_with_provider: Połącz z %{provider}
-        lunchflow_entry: Połącz konto Lunch Flow
         manual_entry: Wprowadź saldo konta
         title: Jak chcesz je dodać?
       title: Co chcesz dodać?

@@ -200,7 +200,7 @@ class Family::DataExporterTest < ActiveSupport::TestCase
 
       # Check rules.csv
       rules_csv = zip.read("rules.csv")
-      assert rules_csv.include?("name,resource_type,active,effective_date,conditions,actions")
+      assert rules_csv.include?("name,resource_type,active,effective_date,conditions,actions,group")
     end
   end
 
@@ -444,6 +444,19 @@ class Family::DataExporterTest < ActiveSupport::TestCase
       assert_equal false, rule_data["data"]["stop_processing"]
       assert rule_data["data"].key?("conditions")
       assert rule_data["data"].key?("actions")
+    end
+  end
+
+  test "exports the rule group name in CSV and NDJSON" do
+    @rule.update!(rule_group: @family.rule_groups.create!(name: "Food"))
+
+    Zip::File.open_buffer(@exporter.generate_export) do |zip|
+      rules_csv = CSV.parse(zip.read("rules.csv"), headers: true)
+      assert_equal "Food", rules_csv.find { |row| row["name"] == "Test Rule" }["group"]
+
+      rule_line = zip.read("all.ndjson").split("\n").map { |line| JSON.parse(line) }
+        .find { |line| line["type"] == "Rule" && line["data"]["name"] == "Test Rule" }
+      assert_equal "Food", rule_line["data"]["group"]
     end
   end
 
@@ -933,7 +946,7 @@ class Family::DataExporterTest < ActiveSupport::TestCase
   end
 
   test "exports provider merchants referenced by transactions in NDJSON" do
-    provider_merchant = ProviderMerchant.create!(name: "AMZN MKTP", source: "plaid", provider_merchant_id: "plaid_amzn")
+    provider_merchant = ProviderMerchant.create!(name: "AMZN MKTP", source: "synth", provider_merchant_id: "plaid_amzn")
     @account.entries.create!(
       date: Date.parse("2024-05-02"),
       amount: 42.50,
@@ -952,13 +965,13 @@ class Family::DataExporterTest < ActiveSupport::TestCase
 
       assert provider_merchant_data
       assert_equal "AMZN MKTP", provider_merchant_data["data"]["name"]
-      assert_equal "plaid", provider_merchant_data["data"]["source"]
+      assert_equal "synth", provider_merchant_data["data"]["source"]
       assert_equal "plaid_amzn", provider_merchant_data["data"]["provider_merchant_id"]
     end
   end
 
   test "does not export a color for a provider merchant" do
-    provider_merchant = ProviderMerchant.create!(name: "Colorless", source: "plaid")
+    provider_merchant = ProviderMerchant.create!(name: "Colorless", source: "synth")
     @account.entries.create!(
       date: Date.parse("2024-05-02"), amount: 5, name: "Colorless purchase", currency: "USD",
       entryable: Transaction.new(merchant: provider_merchant)
@@ -993,7 +1006,7 @@ class Family::DataExporterTest < ActiveSupport::TestCase
   end
 
   test "excludes provider merchants not referenced by the family from NDJSON" do
-    unreferenced = ProviderMerchant.create!(name: "Unrelated Provider Merchant", source: "plaid")
+    unreferenced = ProviderMerchant.create!(name: "Unrelated Provider Merchant", source: "synth")
 
     zip_data = @exporter.generate_export
 

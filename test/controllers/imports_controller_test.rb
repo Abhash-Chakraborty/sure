@@ -664,14 +664,14 @@ class ImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shows the differences when an existing provider merchant differs from the Sure import file" do
-    ProviderMerchant.create!(name: "AMZN MKTP", source: "plaid", website_url: "https://amazon.com")
+    ProviderMerchant.create!(name: "AMZN MKTP", source: "synth", website_url: "https://amazon.com")
     import = @user.family.imports.create!(type: "SureImport")
     ndjson = [
       { type: "Account", data: {
         id: "account-1", name: "Checking", balance: "1000.00", currency: "USD",
         accountable_type: "Depository", accountable: { subtype: "checking" }
       } },
-      { type: "ProviderMerchant", data: { id: "pm-1", name: "AMZN MKTP", source: "plaid", website_url: "https://amazon.co.uk" } }
+      { type: "ProviderMerchant", data: { id: "pm-1", name: "AMZN MKTP", source: "synth", website_url: "https://amazon.co.uk" } }
     ].map(&:to_json).join("\n")
     import.ndjson_file.attach(io: StringIO.new(ndjson), filename: "all.ndjson", content_type: "application/x-ndjson")
     import.sync_ndjson_rows_count!
@@ -727,7 +727,7 @@ class ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_select 'select[name="import[account_id]"] option', text: "Checking Account"
     assert_select 'select[name="import[account_id]"] option', text: "Collectable Account", count: 0
     assert_select 'select[name="import[account_id]"] option', text: "IOU (personal debt to friend)", count: 0
-    assert_select 'select[name="import[account_id]"] option', text: "Plaid Depository Account", count: 0
+    assert_select 'select[name="import[account_id]"] option', text: "Connected Depository Account", count: 0
   end
 
   private

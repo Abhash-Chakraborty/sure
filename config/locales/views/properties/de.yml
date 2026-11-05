@@ -59,9 +59,6 @@ de:
       state_region_label: Bundesland/Region
       state_region_placeholder: BE
       title: Immobilie manuell erfassen
-    avm_providers:
-      realie: Realie
-      rentcast: RentCast
     balances:
       market_value_label: Geschätzter Marktwert
       market_value_tooltip: Der geschätzte Marktwert deiner Immobilie. Anhaltspunkte liefern Portale wie ImmoScout24 oder Immowelt; ein exakter Wert ist das nie.

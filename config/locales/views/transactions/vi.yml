@@ -96,10 +96,6 @@ vi:
       tab_upcoming: Sắp tới
       uncategorized: "(chưa phân loại)"
       additional_details: "Thông tin bổ sung"
-      payee: "Người nhận"
-      description: "Mô tả"
-      memo: "Ghi nhớ"
-      provider_extras: "Thông tin nhà cung cấp"
       transfer_or_debt_payment: "Chuyển khoản hay Thanh toán nợ?"
       open_matcher: "Mở công cụ khớp"
       convert: "Chuyển đổi"

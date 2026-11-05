@@ -1,187 +1,70 @@
 require "application_system_test_case"
-require_relative "../../support/financekit_test_helper"
 
 class Settings::ProvidersTest < ApplicationSystemTestCase
-  include FinancekitTestHelper
+  # No sync provider ships any more. These stand-ins register instance-wide
+  # credentials the way the removed configurable providers did, so the page's
+  # grouping, card grid, filters and connect drawer stay covered. They register
+  # in setup and are removed again in teardown.
+  class ExampleBankAdapter
+    include Provider::Configurable
+
+    def self.register_configuration
+      configure do
+        description "Example bank provider"
+        field :client_id, label: "Client ID", required: true
+        field :secret, label: "Secret", required: true, secret: true
+      end
+    end
+  end
+
+  class ExampleEuAdapter
+    include Provider::Configurable
+
+    def self.register_configuration
+      configure do
+        description "Example EU bank provider"
+        field :client_id, label: "Client ID", required: true
+        field :secret, label: "Secret", required: true, secret: true
+      end
+    end
+  end
+
+  STAND_IN_ADAPTERS = [ ExampleBankAdapter, ExampleEuAdapter ].freeze
+
   setup do
     @user = users(:family_admin)
-    # Registry-driven provider forms (Plaid) edit instance-wide credentials and
-    # are only shown to a super admin; promote the fixture admin so the family
-    # panels below keep using dylan_family.
+    # Registry-driven provider forms edit instance-wide credentials and are
+    # only shown to a super admin.
     @user.update!(role: :super_admin)
     @family = families(:dylan_family)
+    STAND_IN_ADAPTERS.each(&:register_configuration)
     login_as @user
   end
 
-  test "Wallet account links leave the provider frame and open transaction activity" do
-    financekit_setup(user: @user)
-    accept_and_apply
-
-    visit settings_providers_path
-    find("summary", text: "Apple Wallet").click
-    find("details", text: "Apple Wallet").native.save_screenshot(Rails.root.join("tmp", "apple-wallet-connected.png"))
-    within "details#financekit-connection" do
-      click_link "Test Wallet"
+  teardown do
+    STAND_IN_ADAPTERS.each do |adapter|
+      Provider::ConfigurationRegistry.send(:registry).delete(adapter.provider_key)
+      Provider::ConfigurationRegistry.send(:adapter_registry).delete(adapter.provider_key)
     end
-
-    assert_current_path account_path(@source.account)
-    assert_selector "header h2", text: "Test Wallet"
-    assert_text "Synthetic shop"
-
-    visit accounts_path
-    within "#financekit-accounts" do
-      click_link "Test Wallet"
-    end
-    assert_current_path account_path(@source.account)
-    assert_text "Synthetic shop"
+    Setting["example_bank_client_id"] = nil
+    Setting["example_bank_secret"] = nil
+    Setting["example_eu_client_id"] = nil
+    Setting["example_eu_secret"] = nil
   end
 
-  test "disconnecting from a connection row follows the redirect and shows its flash" do
-    item = mercury_items(:one)
-
+  test "an unconfigured provider appears in Available with a connect affordance" do
     visit settings_providers_path
-    find("summary", text: "Mercury").click
-    find("summary", text: item.name).click
-    find("form[action='#{mercury_item_path(item)}']:has(input[name='_method'][value='delete']) button").click
-    within("#confirm-dialog") { click_button "Confirm" }
 
-    assert_current_path accounts_path
-    assert_text I18n.t("mercury_items.destroy.success")
-  end
-
-  test "saving a connection from its row stays on the page for the next save" do
-    item = mercury_items(:one)
-
-    visit settings_providers_path
-    find("summary", text: "Mercury").click
-
-    [ "Renamed Mercury", "Renamed Mercury again" ].each do |name|
-      find("summary", text: item.reload.name).click
-      within("form[action='#{mercury_item_path(item)}']:has(input[name='_method'][value='patch'])") do
-        fill_in I18n.t("mercury_items.provider_panel.connection_name_label"), with: name
-        click_button I18n.t("mercury_items.provider_panel.update_connection")
-      end
-
-      assert_selector "summary", text: name
-      assert_current_path settings_providers_path
-    end
-    assert_equal "Renamed Mercury again", item.reload.name
-  end
-
-  test "syncing a connection from its row keeps the row open" do
-    item = mercury_items(:one)
-
-    visit settings_providers_path
-    find("summary", text: "Mercury").click
-    find("summary", text: item.name).click
-    find("form[action='#{sync_mercury_item_path(item, source: "panel")}'] button").click
-
-    # The toast arrives in the same stream as the panel, after it.
-    assert_text I18n.t("settings.providers.sync_provider_in_progress")
-    assert_selector "details#mercury-connection[open]"
-    assert_current_path settings_providers_path
-    assert item.reload.syncing?
-  end
-
-  test "Wallet advertises App Store availability without a web connection flow" do
-    visit settings_providers_path
-    find('[data-providers-filter-target="input"]').set("Apple Wallet")
+    assert_no_selector "details", text: "Example Bank"
 
     within available_provider_cards_container do
-      assert_text "US / UK"
-      assert_text "Bank"
-      assert_button "App Store", disabled: true
-      assert_selector '[title="Coming soon!"]'
-      assert_no_selector "a[data-turbo-frame='drawer']", visible: true
-      find('[data-providers-filter-target="card"]', text: "Apple Wallet").native.save_screenshot(
-        Rails.root.join("tmp", "apple-wallet-available.png"))
-    end
-  end
-
-  test "Wallet unlink confirmation disconnects the publisher and keeps account activity" do
-    financekit_setup(user: @user)
-    accept_and_apply
-
-    visit accounts_path
-    within "#financekit-accounts" do
-      find("button[aria-haspopup='menu']").click
-      click_link "Unlink from provider"
-    end
-    dialog = find("dialog[open]")
-    within dialog do
-      assert_text I18n.t("accounts.confirm_unlink.warning_wallet_connection")
-      dialog.native.save_screenshot(Rails.root.join("tmp", "apple-wallet-unlink.png"))
-      click_on "Confirm and unlink"
-    end
-
-    assert_no_selector "dialog[open]"
-    assert_current_path accounts_path
-    within "#manual-accounts" do
-      click_link "Test Wallet"
-    end
-    assert_current_path account_path(@source.account)
-    assert_text "Synthetic shop"
-    assert_equal "revoked", @item.reload.status
-  end
-
-  test "shows status pill on section header for a configured provider" do
-    SimplefinItem.create!(family: @family, name: "Test SimpleFIN", access_url: "https://bridge.simplefin.org/simplefin/access")
-
-    visit settings_providers_path
-
-    within("details", text: "SimpleFIN") do
-      assert_text "Connected"
-    end
-  end
-
-  test "unconfigured SimpleFIN appears in Available with a connect affordance" do
-    visit settings_providers_path
-
-    assert_no_selector "details", text: "SimpleFIN"
-
-    within available_provider_cards_container do
-      assert_text "SimpleFIN"
+      assert_text "Example Bank"
       assert_selector "a[data-turbo-frame='drawer']", text: "Connect"
     end
   end
 
-  test "connected providers are grouped under Your connections in alphabetical title order" do
-    SimplefinItem.create!(family: @family, name: "Test SimpleFIN", access_url: "https://bridge.simplefin.org/simplefin/access")
-    # A connection that needs attention is listed first, so keep the Trade
-    # Republic one logged in and let only the alphabetical order count.
-    trade_republic_items(:requires_update_item).update!(status: :good)
-
-    visit settings_providers_path
-
-    titles = all("details").map { |d| d.find("summary h3", match: :first).text.squish }
-    assert_equal titles.sort_by(&:downcase), titles, "Connection panels should render alphabetically by title"
-
-    connections_heading = page.find(:xpath, "//h2[contains(translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'your connections')]")
-    available_heading = page.find(:xpath, "//h2[contains(translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'available')]")
-    connections_y = connections_heading.native.location.y
-    available_y = available_heading.native.location.y
-
-    assert_operator connections_y, :<, page.find("details", text: "SimpleFIN").native.location.y
-    assert_operator page.find("details", text: "SimpleFIN").native.location.y, :<, available_y
-  end
-
-  test "expanding a section still works as expected" do
-    SimplefinItem.create!(family: @family, name: "Test SimpleFIN", access_url: "https://bridge.simplefin.org/simplefin/access")
-
-    visit settings_providers_path
-
-    assert_selector "details:not([open])", text: "SimpleFIN"
-
-    find("details", text: "SimpleFIN").find("summary").click
-
-    assert_selector "details[open]", text: "SimpleFIN"
-    within("details[open]", text: "SimpleFIN") do
-      assert_text "Setup Token"
-    end
-  end
-
   test "groups providers into Your connections and Available with counts" do
-    SimplefinItem.create!(family: @family, name: "Test SimpleFIN", access_url: "https://bridge.simplefin.org/simplefin/access")
+    configure_example_bank
 
     visit settings_providers_path
 
@@ -192,17 +75,17 @@ class Settings::ProvidersTest < ApplicationSystemTestCase
     connections_y = connections_heading.native.location.y
     available_heading = find(:xpath, "//h2[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'available')]")
     available_y = available_heading.native.location.y
-    simplefin_y = find("details", text: "SimpleFIN").native.location.y
+    connection_y = find("details", text: "Example Bank").native.location.y
 
-    assert_operator connections_y, :<, simplefin_y, "Your connections heading should appear above SimpleFIN section"
-    assert_operator simplefin_y, :<, available_y, "SimpleFIN should appear above Available heading"
+    assert_operator connections_y, :<, connection_y, "Your connections heading should appear above the connection"
+    assert_operator connection_y, :<, available_y, "The connection should appear above Available heading"
 
     available_grid_top = available_provider_cards_container.native.location.y
     assert_operator available_y, :<, available_grid_top, "Available heading should appear above the card grid"
   end
 
   test "action needed group is absent when no providers have issues" do
-    SimplefinItem.create!(family: @family, name: "Test SimpleFIN", access_url: "https://bridge.simplefin.org/simplefin/access")
+    configure_example_bank
 
     visit settings_providers_path
 
@@ -210,47 +93,13 @@ class Settings::ProvidersTest < ApplicationSystemTestCase
     assert_no_selector "h2", text: /\AAction needed/i
   end
 
-  test "enable banking with expiring session appears in your connections and auto-opens" do
-    item = EnableBankingItem.new(
-      family: @family,
-      name: "Test Bank",
-      country_code: "DE",
-      application_id: "test-app-id",
-      session_id: "test-session",
-      session_expires_at: 5.days.from_now
-    )
-    # Skip certificate validation for test purposes
-    item.save!(validate: false)
-
-    visit settings_providers_path
-
-    assert_selector "h2", text: /\AYour connections/i
-
-    # Auto-expanded warning sections hide compact meta behind `group-open:hidden`;
-    # collapse once so the re-consent copy is visible again.
-    enable = find("details", text: /Enable Banking/)
-    enable.find("summary").click if enable.matches_selector?(":open")
-
-    assert_selector "details:not([open])", text: /Enable Banking/
-    assert_text "Re-consent needed in 5 days"
-  end
-
   test "search input filters provider cards by name" do
     visit settings_providers_path
 
-    find('[data-providers-filter-target="input"]').set("Coinbase")
+    find('[data-providers-filter-target="input"]').set("Example Eu")
 
-    assert_selector "a[data-providers-filter-target='card']", text: /Coinbase/i
-    assert_no_selector "a[data-providers-filter-target='card']", text: /Binance/i
-  end
-
-  test "kind chip narrows the grid to providers of that kind" do
-    visit settings_providers_path
-
-    click_on "Crypto"
-
-    assert_selector "a[data-providers-filter-target='card']", text: /Coinbase/i
-    assert_no_selector "a[data-providers-filter-target='card']", text: /SimpleFIN/i
+    assert_selector "a[data-providers-filter-target='card']", text: /Example Eu/i
+    assert_no_selector "a[data-providers-filter-target='card']", text: /Example Bank/i
   end
 
   test "search shows the empty filter message when no provider matches" do
@@ -266,7 +115,7 @@ class Settings::ProvidersTest < ApplicationSystemTestCase
     visit settings_providers_path
 
     within available_provider_cards_container do
-      assert_text "SimpleFIN"
+      assert_text "Example Bank"
       assert_selector "a[data-turbo-frame='drawer']", minimum: 1
     end
   end
@@ -275,22 +124,22 @@ class Settings::ProvidersTest < ApplicationSystemTestCase
     visit settings_providers_path
 
     within available_provider_cards_container do
-      find("a[data-turbo-frame='drawer']", text: "SimpleFIN").click
+      find("a[data-turbo-frame='drawer']", text: "Example Bank").click
     end
 
     assert_selector "dialog[open]"
-    assert_text "Setup Token"
+    assert_text "Client ID"
   end
 
-  test "configured plaid_eu surfaces in Your connections instead of Available" do
-    Setting["plaid_eu_client_id"] = "test_eu_client"
-    Setting["plaid_eu_secret"] = "test_eu_secret"
+  test "a configured provider surfaces in Your connections instead of Available" do
+    Setting["example_eu_client_id"] = "test_eu_client"
+    Setting["example_eu_secret"] = "test_eu_secret"
 
     visit settings_providers_path
 
-    assert_selector "details summary h3", text: "Plaid EU"
+    assert_selector "details summary h3", text: "Example Eu"
     within available_provider_cards_container do
-      assert_no_text "Plaid EU"
+      assert_no_text "Example Eu"
     end
   end
 
@@ -304,42 +153,15 @@ class Settings::ProvidersTest < ApplicationSystemTestCase
 
     assert_no_selector '[data-providers-filter-target="empty"]', visible: true
     assert_equal "", find('[data-providers-filter-target="input"]').value
-    assert_selector "a[data-providers-filter-target='card']", text: /SimpleFIN/i
-  end
-
-  test "warn-state connection row carries warning outline class" do
-    item = EnableBankingItem.new(
-      family: @family,
-      name: "Test Bank",
-      country_code: "DE",
-      application_id: "test-app-id",
-      session_id: "test-session",
-      session_expires_at: 5.days.from_now
-    )
-    item.save!(validate: false)
-
-    visit settings_providers_path
-
-    details = find("details", text: /Enable Banking/)
-    assert_includes details[:class], "border-warning/25"
-  end
-
-  test "Manage Connections in the SnapTrade menu opens the connections list" do
-    Provider::Snaptrade.stubs(:oauth_configured?).returns(true)
-    Provider::Snaptrade.any_instance.stubs(:list_connections)
-      .returns([ { "id" => "auth_456", "brokerage" => { "name" => "Fidelity Investments" } } ])
-
-    visit accounts_path
-    within "##{dom_id(snaptrade_items(:configured_item))}" do
-      find("button[aria-haspopup='menu']", match: :first).click
-      click_link "Manage Connections"
-    end
-
-    assert_selector "details[open] #snaptrade-providers-panel details[open]", text: "Fidelity Investments"
-    assert_current_path settings_providers_path
+    assert_selector "a[data-providers-filter-target='card']", text: /Example Bank/i
   end
 
   private
+
+    def configure_example_bank
+      Setting["example_bank_client_id"] = "test_client"
+      Setting["example_bank_secret"] = "test_secret"
+    end
 
     # Card grid rendered after the `#available` group heading (following sibling div.grid)
     def available_provider_cards_container

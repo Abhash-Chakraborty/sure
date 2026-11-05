@@ -78,28 +78,14 @@ zh-CN:
         securities_title: 证券提供商
         securities_description: 启用一个或多个提供商以获取股票、ETF 和共同基金价格。搜索时将查询所有启用的提供商并合并结果。
         env_configured_message: 提供商选择已禁用，因为已设置环境变量。要在此处启用选择，请从配置中移除这些环境变量。
-        twelve_data_hint: 需要 API 密钥，每日额度 800 点
         yahoo_finance_hint: 免费，无需 API 密钥
-        requires_api_key: 需要 API 密钥
-        requires_api_key_eodhd: 需要 API 密钥，限制每天 20 次调用
-        requires_api_key_alpha_vantage: 需要 API 密钥，限制每天 25 次调用
         mfapi_hint: 免费，无需 API 密钥 -- 仅限印度共同基金
         binance_public_hint: 免费，无需 API 密钥 -- 仅限加密货币（BTC、ETH 等）
-        moex_public_hint: 免费，无需 API 密钥 -- 俄罗斯股票、基金和债券（MOEX），包括 RUB 外汇
-        tinkoff_invest_hint: 需要只读令牌 -- 俄罗斯股票/基金/债券价格 + 品牌 Logo
-        requires_api_key_mansa: 需要 API 密钥，每日免费额度 100 次 -- 非洲交易所（NGX、JSE、NSE、GSE、BRVM 等）
         providers:
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-          tiingo: Tiingo
-          eodhd: EODHD
-          alpha_vantage: Alpha Vantage
           mfapi: MFAPI.in
           binance_public: Binance
-          moex_public: MOEX
-          tinkoff_invest: T-Invest (T-Bank)
           frankfurter: Frankfurter
-          mansa: Mansa
       show:
         demo_refresh: 演示数据刷新
         clear_cache: 清除数据缓存
@@ -111,27 +97,10 @@ zh-CN:
         financial_data_providers: 金融数据提供商
         general: 通用设置
         invites: 邀请码设置
-        property_valuation_providers: 房产估值提供商
         title: 自托管配置
         ai_assistant: AI 助手
         sync_settings: 同步设置
         instance_settings_restricted: 提供商凭据、共享 AI 连接和同步设置适用于此实例上的每个家庭，因此仅超级管理员可以修改。您家庭使用哪个助手仍按家庭单独设置。拥有服务器访问权限的人可以将用户提升为超级管理员；Docker 自托管指南在其升级说明中展示了该命令。
-      twelve_data_settings:
-        api_calls_used: 已使用 %{used} / %{limit} 次每日 API 调用（%{percentage}）
-        description: 请输入 Twelve Data 提供的 API 密钥
-        env_configured_message: 已通过 TWELVE_DATA_API_KEY 环境变量成功配置。
-        label: API 密钥
-        placeholder: 在此输入您的 API 密钥
-        plan: "%{plan} 套餐"
-        title: Twelve Data 设置
-        show_details: "（显示详情）"
-        step_1_html: 注册或登录 Twelve Data。
-        step_2_html: 前往 <a href="https://twelvedata.com/account/api-keys" target="_blank" rel="noopener noreferrer" class="underline">API Keys</a> 页面。
-        step_3: 显示 API 密钥并粘贴到下方。
-        plan_upgrade_warning_title: 部分代码需要付费计划
-        plan_upgrade_warning_description: 当前 Twelve Data 计划无法同步下列持仓价格。
-        requires_plan: 需要 %{plan} 计划
-        view_pricing: 查看 Twelve Data 价格
       update:
         invalid_demo_family: 选定的家庭必须拥有配置的演示邮箱。
         select_demo_family: 请先选择一个一次性演示家庭。
@@ -258,80 +227,6 @@ zh-CN:
         model_label: 模型（可选）
         model_placeholder: jev-latest（默认）
         model_help: 默认直接连接 TypeSafe。若要通过 OpenRouter 连接 Jev，请将端点设置为 https://openrouter.ai/api/alpha/decisions，模型设置为 ~typesafe/jev-latest。
-      tiingo_settings:
-        title: Tiingo
-        description: 使用 Tiingo 同步证券价格。
-        env_configured_message: 已通过环境变量配置 Tiingo。
-        label: API 令牌
-        placeholder: 粘贴 Tiingo API Token
-        show_details: "（显示详情）"
-        step_1_html: 注册或登录 Tiingo。
-        step_2_html: 前往 <a href="https://www.tiingo.com/account/api/token" target="_blank" rel="noopener noreferrer" class="underline">API Token</a> 页面。
-        step_3: 复制 API Token 并粘贴到下方。
-      rentcast_settings:
-        title: RentCast
-        description: 输入您的 RentCast API 密钥，以便在添加房产时查询美国房产详情和估值。免费额度限制为每月 50 次 API 请求，由房产查询和每日估值刷新共享。如果使用付费方案，可通过 RENTCAST_MAX_REQUESTS_PER_MONTH 环境变量提高上限。
-        env_configured_message: 已通过 RENTCAST_API_KEY 环境变量成功配置。
-        label: API 密钥
-        placeholder: 在此输入您的 RentCast API 密钥
-        usage: "本月已使用 %{used} / %{limit} 次请求"
-      realie_settings:
-        title: Realie
-        description: 输入您的 Realie API 密钥，以便在添加房产时查询美国房产详情和估值。免费额度限制为每月 25 次 API 请求，由房产查询和每日估值刷新共享。如果使用付费方案，可通过 REALIE_MAX_REQUESTS_PER_MONTH 环境变量提高上限。
-        env_configured_message: 已通过 REALIE_API_KEY 环境变量成功配置。
-        label: API 密钥
-        placeholder: 在此输入您的 Realie API 密钥
-        usage: "本月已使用 %{used} / %{limit} 次请求"
-      chimnie_settings:
-        title: Chimnie
-        description: 输入您的 Chimnie API 密钥，以便通过 UPRN 对英国住宅房产进行估值。在 dashboard.chimnie.com 创建免费密钥（注册需要企业或自定义域名邮箱；不接受 Gmail、Outlook 等公共邮箱）。UPRN 估值免费且每月刷新；Sure 将其限制为每月 1,000 次请求，您可以通过 CHIMNIE_MAX_REQUESTS_PER_MONTH 环境变量更改此限制。
-        env_configured_message: 已通过 CHIMNIE_API_KEY 环境变量成功配置。
-        label: API 密钥
-        placeholder: 在此输入您的 Chimnie API 密钥
-        usage: "本月已使用 %{used} / %{limit} 次请求"
-      tinkoff_invest_settings:
-        title: T-Invest (T-Bank)
-        description: 输入只读 T-Invest API 令牌。用于获取证券的品牌 Logo（包括基金和债券，即使它们由 MOEX 定价），并在上方启用时获取俄罗斯金融产品的价格。
-        moex_only_notice: 上方未启用价格获取 — 只要配置了令牌，无论上方复选框如何，T-Invest 都会用于为您所有的证券获取品牌 Logo。
-        env_configured_message: 已通过 TINKOFF_INVEST_API_KEY 环境变量成功配置。
-        label: API 令牌
-        placeholder: 在此输入您的 T-Invest API 令牌
-        show_details: "（显示详情）"
-        step_1: 打开 T-Bank 投资，然后进入设置，再进入 API 令牌（需要开通 T-Bank 经纪账户）。
-        step_2: 创建一个具有只读访问权限的令牌。
-        step_3: 复制令牌并粘贴在下方。
-      mansa_settings:
-        title: Mansa
-        description: 输入 Mansa API 的 API 密钥。支持 20 家非洲证券交易所，包括 NGX（尼日利亚证券交易所）、JSE、NSE（肯尼亚）、GSE（加纳）和 BRVM -- 其中多家交易所此处的其他提供商均未覆盖。
-        env_configured_message: 已通过 MANSA_API_KEY 环境变量成功配置。
-        label: API 密钥
-        placeholder: 在此输入您的 Mansa API 密钥
-        show_details: "（显示详情）"
-        step_1_html: '访问 <a href="https://mansaapi.com" target="_blank" rel="noopener noreferrer" class="underline">mansaapi.com</a> 并获取您的免费 API 密钥 — 无需信用卡。'
-        step_2: 复制您的 API 密钥并粘贴在下方。
-        rate_limit_warning: Mansa 的免费层限制为每天 100 次 API 调用，且仅提供当前报价 -- 历史价格需要付费方案。
-      eodhd_settings:
-        title: EODHD
-        description: 使用 EODHD 同步证券价格。
-        env_configured_message: 已通过环境变量配置 EODHD。
-        label: API 令牌
-        placeholder: 粘贴 EODHD API Token
-        show_details: "（显示详情）"
-        step_1_html: 注册或登录 EODHD。
-        step_2_html: 打开 API Token 页面。
-        step_3: 复制 API Token 并粘贴到下方。
-        rate_limit_warning: 免费或低阶计划可能有调用频率限制。
-      alpha_vantage_settings:
-        title: Alpha Vantage
-        description: 使用 Alpha Vantage 同步证券价格。
-        env_configured_message: 已通过环境变量配置 Alpha Vantage。
-        label: API 密钥
-        placeholder: 粘贴 Alpha Vantage API Key
-        show_details: "（显示详情）"
-        step_1_html: 注册或登录 Alpha Vantage。
-        step_2: 前往 API Key 页面并复制密钥。
-        rate_limit_warning: 免费计划可能有调用频率限制。
-        no_health_check_note: 此提供商暂无健康检查。
       disconnect_external_assistant:
         external_assistant_disconnected: 外部助手已断开连接。
       ensure_admin:
@@ -345,9 +240,6 @@ zh-CN:
         auto_sync_description: 按计划自动同步已连接账户。
         auto_sync_time_label: 同步时间（HH:MM）
         auto_sync_time_description: 每天触发自动同步的时间。
-        include_pending_label: 包含待处理交易
-        include_pending_description: 同步时同时拉取提供商返回的待处理交易。
-        env_configured_message: 已通过环境变量配置同步设置。
         market_data_sync_label: 启用每日市场数据导入
         market_data_sync_description: 启用后，将在指定时间每天（周一至周五）自动导入证券价格一次。
         market_data_sync_time_label: 市场数据导入时间（HH:MM）

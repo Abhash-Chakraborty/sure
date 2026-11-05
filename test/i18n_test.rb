@@ -164,23 +164,21 @@ class I18nTest < ActiveSupport::TestCase
     end
   end
 
-  def test_trade_republic_activity_labels_exist_for_each_locale
-    required_labels = %w[
-      contribution withdrawal interest dividend card_payment cash_withdrawal
-      card_fee card_refund tax_refund round_up
-    ]
+  # A placeholder the English string does not have is never passed by the
+  # caller, so I18n raises MissingInterpolationArgument and the page or flash
+  # breaks for Dutch users only. Plural forms always receive %{count}, so the
+  # Dutch "one" form may use it where English spells out "1".
+  def test_dutch_strings_use_no_placeholders_english_lacks
+    english = locale_leaves("en")
+    extra = locale_leaves("nl").filter_map do |key, value|
+      next unless value.is_a?(String) && english[key].is_a?(String)
 
-    Dir[File.expand_path("../config/locales/views/trade_republic_items/*.yml", __dir__)].sort.each do |file|
-      locale = File.basename(file, ".yml")
-      translations = YAML.load_file(file, aliases: true).fetch(locale)
-      labels = translations.dig("trade_republic_items", "activities", "labels")
-
-      assert labels.is_a?(Hash), "#{file} must define trade_republic_items.activities.labels"
-      assert_empty required_labels - labels.keys,
-                   "#{file} is missing Trade Republic activity labels"
-      assert translations.dig("trade_republic_items", "trade_republic_item", "data_quality", "pending_trade_details").present?,
-             "#{file} is missing trade_republic_item.data_quality.pending_trade_details"
+      unknown = value.scan(/%\{\w+\}/) - english[key].scan(/%\{\w+\}/)
+      unknown -= [ "%{count}" ] if key.match?(/\.(zero|one|two|few|many|other)\z/)
+      "#{key}: #{unknown.uniq.join(", ")}" if unknown.any?
     end
+
+    assert_empty extra, "nl placeholders missing from en:\n#{extra.join("\n")}"
   end
 
   private
@@ -189,6 +187,13 @@ class I18nTest < ActiveSupport::TestCase
       tree = YAML.load_file(Pathname.pwd.join("config/locales/views/components/#{locale}.yml"), aliases: true)
         .dig(locale, "UI", "account", "chart", "loan") || {}
       flatten_leaves(tree)
+    end
+
+    def locale_leaves(locale)
+      Dir[Pathname.pwd.join("config/locales/**/*#{locale}.yml")].each_with_object({}) do |path, leaves|
+        tree = YAML.load_file(path, aliases: true)&.fetch(locale, nil)
+        leaves.merge!(flatten_leaves(tree)) if tree.is_a?(Hash)
+      end
     end
 
     def flatten_leaves(tree, prefix = nil)

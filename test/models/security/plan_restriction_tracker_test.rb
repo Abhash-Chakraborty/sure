@@ -1,14 +1,33 @@
 require "test_helper"
 
 class Security::PlanRestrictionTrackerTest < ActiveSupport::TestCase
+  # No installed provider reports plan restrictions, so these tests register a
+  # stand-in under the "TwelveData" key that reads the "available starting with
+  # <Plan>" message the tracker was written for.
+  class PlanLimitedProvider
+    PLAN_UPGRADE_PATTERN = /available starting with (\w+)/i
+
+    def self.plan_upgrade_required?(error_message)
+      error_message.present? && PLAN_UPGRADE_PATTERN.match?(error_message)
+    end
+
+    def self.extract_required_plan(error_message)
+      error_message.to_s[PLAN_UPGRADE_PATTERN, 1]
+    end
+  end
+
   setup do
     # Use memory store for testing
     @original_cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
+
+    @original_provider_classes = Security::PlanRestrictionTracker::PROVIDER_CLASSES
+    replace_provider_classes("TwelveData" => PlanLimitedProvider)
   end
 
   teardown do
     Rails.cache = @original_cache
+    replace_provider_classes(@original_provider_classes)
   end
 
   test "plan_upgrade_required? detects Grow plan message" do
@@ -112,4 +131,10 @@ class Security::PlanRestrictionTrackerTest < ActiveSupport::TestCase
     assert_nil Security.plan_restriction_for(999, provider: "TwelveData")
     assert_not_nil Security.plan_restriction_for(999, provider: "OtherProvider")
   end
+
+  private
+    def replace_provider_classes(provider_classes)
+      Security::PlanRestrictionTracker.send(:remove_const, :PROVIDER_CLASSES)
+      Security::PlanRestrictionTracker.const_set(:PROVIDER_CLASSES, provider_classes)
+    end
 end

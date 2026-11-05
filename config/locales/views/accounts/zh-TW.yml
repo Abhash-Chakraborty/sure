@@ -9,10 +9,8 @@ zh-TW:
     account:
       complete_setup: 完成設定
       edit: 編輯
-      link_lunchflow: 連結 Lunch Flow
       link_provider: 連結服務供應商
       unlink_provider: 解除與服務供應商的連結
-      change_simplefin_account: 更換 SimpleFIN 帳戶
       troubleshoot: 疑難排解
       enable: 啟用帳戶
       disable: 停用帳戶
@@ -72,7 +70,6 @@ zh-TW:
         connected_entry: 連結帳戶
         connected_entry_eu: 連結歐盟 (EU) 帳戶
         link_with_provider: 與 %{provider} 連結
-        lunchflow_entry: 連結 Lunch Flow 帳戶
         manual_entry: 輸入帳戶餘額
         title: 您想如何新增？
       title: 您想新增什麼內容？

@@ -98,10 +98,6 @@ it:
       tab_upcoming: In arrivo
       uncategorized: "(non categorizzata)"
       additional_details: "Dettagli aggiuntivi"
-      payee: "Beneficiario"
-      description: "Descrizione"
-      memo: "Memo"
-      provider_extras: "Dati provider"
       transfer_or_debt_payment: "Bonifico o pagamento debito?"
       open_matcher: "Apri corrispondenza"
       convert: "Converti"

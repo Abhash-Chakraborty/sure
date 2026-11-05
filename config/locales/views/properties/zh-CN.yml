@@ -22,10 +22,6 @@ zh-CN:
       year_built: 建造年份
       year_built_placeholder: '2000'
       subtype_prompt: 选择房产类型
-    avm_providers:
-      rentcast: RentCast
-      realie: Realie
-      chimnie: Chimnie
     new:
       title: 手动输入房产
       next: 下一步
@@ -52,7 +48,6 @@ zh-CN:
         high: "高"
         medium: "中"
         low: "低"
-      avm_attribution_chimnie: "估值数据来自 Chimnie。包含 OS 数据 © 皇家版权及数据库权利，皇家邮政数据 © 皇家邮政版权及数据库权利，以及英国土地登记局数据 © 皇家版权及数据库权利，根据 Open Government Licence v3.0 授权。"
       avm_preview_confirm: "添加房产"
     address:
       title: 手动输入房产

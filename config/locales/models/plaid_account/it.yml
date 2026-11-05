@@ -1,7 +1,0 @@
----
-it:
-  activerecord:
-    errors:
-      models:
-        plaid_account:
-          no_balance: "Il conto Plaid deve avere un saldo corrente o disponibile"

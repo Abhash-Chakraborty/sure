@@ -20,7 +20,6 @@ zh-TW:
         general: 一般設定
         ai_assistant: AI 助手
         financial_data_providers: 金融資料供應商
-        property_valuation_providers: 房產估價供應商
         sync_settings: 同步設定
         invites: 邀請碼
         title: 自行代管 (Self-Hosting)
@@ -37,25 +36,13 @@ zh-TW:
         securities_title: 證券資料供應商
         securities_description: 啟用一個或多個供應商來取得股票、ETF 與共同基金的價格。搜尋時會同時查詢所有已啟用的供應商，並將結果合併。
         env_configured_message: 因為已設定環境變數，這裡無法選擇供應商。若要改在這裡選擇，請先移除那些環境變數。
-        twelve_data_hint: 需要 API 金鑰，每天 800 點額度
         yahoo_finance_hint: 免費，不需要 API 金鑰
-        requires_api_key: 需要 API 金鑰
-        requires_api_key_eodhd: 需要 API 金鑰，每天上限 20 次呼叫
-        requires_api_key_alpha_vantage: 需要 API 金鑰，每天上限 25 次呼叫
         mfapi_hint: 免費，不需要 API 金鑰 - 僅限印度共同基金
         binance_public_hint: 免費，不需要 API 金鑰 - 僅限加密貨幣（BTC、ETH 等）
-        moex_public_hint: 免費，不需要 API 金鑰 - 俄羅斯股票、基金與債券（MOEX），含盧布匯率
-        tinkoff_invest_hint: 需要唯讀 Token - 俄羅斯股票/基金/債券價格 + 品牌標誌
         providers:
-          twelve_data: Twelve Data
           yahoo_finance: Yahoo Finance
-          tiingo: Tiingo
-          eodhd: EODHD
-          alpha_vantage: Alpha Vantage
           mfapi: MFAPI.in
           binance_public: Binance
-          moex_public: MOEX
-          tinkoff_invest: T-Invest (T-Bank)
           frankfurter: Frankfurter
         title: 供應商選擇
         description: 選擇用於取得匯率和證券價格的服務。Yahoo Finance 是免費的且不需要 API 金鑰。Twelve Data 需要免費的 API 金鑰，但可能提供更廣的資料涵蓋範圍。
@@ -161,78 +148,6 @@ zh-TW:
         status_inactive: Yahoo Finance 連線失敗
         connection_failed: 無法連線至 Yahoo Finance
         troubleshooting: 請檢查您的網路連線與防火牆設定。Yahoo Finance 可能暫時無法使用。
-      rentcast_settings:
-        title: RentCast
-        description: 輸入您的 RentCast API 金鑰，即可在新增房產時查詢美國房產的細節與估價。免費方案每月限 50 次 API 請求，由房產查詢與每日估價更新共用。付費方案可用 RENTCAST_MAX_REQUESTS_PER_MONTH 環境變數提高上限。
-        env_configured_message: 已透過 RENTCAST_API_KEY 環境變數成功設定。
-        label: API 金鑰
-        placeholder: 在此輸入您的 RentCast API 金鑰
-        usage: 本月已使用 %{used} / %{limit} 次請求
-      realie_settings:
-        title: Realie
-        description: 輸入您的 Realie API 金鑰，即可在新增房產時查詢美國房產的細節與估價。免費方案每月限 25 次 API 請求，由房產查詢與每日估價更新共用。付費方案可用 REALIE_MAX_REQUESTS_PER_MONTH 環境變數提高上限。
-        env_configured_message: 已透過 REALIE_API_KEY 環境變數成功設定。
-        label: API 金鑰
-        placeholder: 在此輸入您的 Realie API 金鑰
-        usage: 本月已使用 %{used} / %{limit} 次請求
-      tiingo_settings:
-        title: Tiingo
-        description: 輸入 Tiingo 提供的 API Token。免費方案每小時支援 50 個不重複的代碼，並提供 30 年以上的歷史資料。
-        env_configured_message: 已透過 TIINGO_API_KEY 環境變數成功設定。
-        label: API 權杖 (API Token)
-        placeholder: 在此輸入您的 Tiingo API Token
-        show_details: （顯示詳細資訊）
-        step_1_html: 前往 <a href="https://www.tiingo.com" target="_blank" rel="noopener noreferrer" class="underline">tiingo.com</a> 註冊一個免費帳號。
-        step_2_html: 前往 <a href="https://www.tiingo.com/account/api/token" target="_blank" rel="noopener noreferrer" class="underline">API Token</a> 頁面。
-        step_3: 複製您的 API Token 並貼到下方。
-      tinkoff_invest_settings:
-        title: T-Invest (T-Bank)
-        description: 輸入唯讀的 T-Invest API Token。用於取得證券的品牌標誌（包含基金與債券，即使價格來自 MOEX），並在上方啟用時提供俄羅斯金融商品的價格。
-        env_configured_message: 已透過 TINKOFF_INVEST_API_KEY 環境變數成功設定。
-        label: API 權杖 (API Token)
-        placeholder: 在此輸入您的 T-Invest API Token
-        show_details: （顯示詳細資訊）
-        step_1: 開啟 T-Bank 投資，接著進入 Settings，然後是 API tokens（需要已開立的 T-Bank 券商帳戶）。
-        step_2: 建立一個唯讀存取的 Token。
-        step_3: 複製 Token 並貼到下方。
-      eodhd_settings:
-        title: EODHD
-        description: 輸入 EODHD 提供的 API Token。支援 LSE、XETRA 與其他國際交易所的歐洲 ETF。
-        env_configured_message: 已透過 EODHD_API_KEY 環境變數成功設定。
-        label: API 權杖 (API Token)
-        placeholder: 在此輸入您的 EODHD API Token
-        show_details: （顯示詳細資訊）
-        step_1_html: 前往 <a href="https://eodhd.com/register" target="_blank" rel="noopener noreferrer" class="underline">eodhd.com</a> 註冊一個免費帳號。
-        step_2_html: 前往您的 <a href="https://eodhd.com/cp/dashboard" target="_blank" rel="noopener noreferrer" class="underline">Dashboard</a> 找到您的 API Token。
-        step_3: 複製您的 API Token 並貼到下方。
-        rate_limit_warning: EODHD 免費方案每天限用 20 次 API 呼叫，最適合當作補充用的供應商，處理其他供應商查不到的歐洲 ETF。
-      alpha_vantage_settings:
-        title: Alpha Vantage
-        description: 輸入 Alpha Vantage 的 API 金鑰。支援倫敦證券交易所、XETRA 與其他交易所的歐洲 ETF。
-        env_configured_message: 已透過 ALPHA_VANTAGE_API_KEY 環境變數成功設定。
-        label: API 金鑰
-        placeholder: 在此輸入您的 Alpha Vantage API 金鑰
-        show_details: （顯示詳細資訊）
-        step_1_html: 前往 <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener noreferrer" class="underline">alphavantage.co</a> 索取您的免費 API 金鑰。
-        step_2: 複製 API 金鑰並貼到下方。
-        rate_limit_warning: Alpha Vantage 免費方案每天限用 25 次 API 呼叫，最適合當作補充用的供應商，處理其他供應商查不到的歐洲 ETF。
-        no_health_check_note: 由於這個供應商的用量限制很嚴格，因此不做連線健康檢查。
-      twelve_data_settings:
-        api_calls_used: 每日 API 呼叫已使用 %{used} / %{limit} (%{percentage})
-        description: 輸入 Twelve Data 提供的 API 金鑰
-        env_configured_message: 已透過 TWELVE_DATA_API_KEY 環境變數成功設定。
-        label: API 金鑰
-        placeholder: 在此輸入您的 API 金鑰
-        show_details: （顯示詳細資訊）
-        step_1_html: 前往 <a href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer" class="underline">twelvedata.com</a> 註冊一個免費的 Twelve Data 開發者帳號。
-        step_2_html: 前往 <a href="https://twelvedata.com/account/api-keys" target="_blank" rel="noopener noreferrer" class="underline">API Keys</a> 頁面。
-        step_3: 顯示您的 Secret Key 並貼到下方。
-        plan: '%{plan} 方案'
-        plan_upgrade_warning_title: 部分代碼需要付費方案
-        plan_upgrade_warning_description: 您投資組合中的下列代碼，無法用目前的 Twelve Data 方案同步價格。
-        requires_plan: 需要 %{plan} 方案
-        view_pricing: 查看 Twelve Data 價格方案
-        title: Twelve Data
       update:
         failure: 設定值無效
         success: 設定已更新
@@ -258,6 +173,3 @@ zh-TW:
         auto_sync_description: 啟用後，所有帳戶都會在指定時間每天自動同步。
         auto_sync_time_label: 同步時間 (HH:MM)
         auto_sync_time_description: 指定每天要進行自動同步的時間。
-        include_pending_label: 納入待處理交易
-        include_pending_description: 啟用後，待處理（尚未清算）的交易會被匯入，並在入帳時自動核對。如果您的銀行提供的待處理資料不可靠，請關閉這個選項。
-        env_configured_message: 這項設定已停用，因為系統設定了供應商的環境變數（SIMPLEFIN_INCLUDE_PENDING 或 PLAID_INCLUDE_PENDING）。移除它才能啟用這項設定。

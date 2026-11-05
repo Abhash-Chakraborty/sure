@@ -5,7 +5,6 @@ class Setting < RailsSettings::Base
   cache_prefix { "v1" }
 
   # Third-party API keys
-  field :twelve_data_api_key, type: :string, default: ENV["TWELVE_DATA_API_KEY"]
   field :openai_access_token, type: :string, default: ENV["OPENAI_ACCESS_TOKEN"]
   field :openai_uri_base, type: :string, default: ENV["OPENAI_URI_BASE"]
   field :openai_model, type: :string, default: ENV["OPENAI_MODEL"]
@@ -81,25 +80,11 @@ class Setting < RailsSettings::Base
   end
 
   # Provider selection
-  field :exchange_rate_provider, type: :string, default: ENV.fetch("EXCHANGE_RATE_PROVIDER", "twelve_data")
-  field :securities_provider, type: :string, default: ENV.fetch("SECURITIES_PROVIDER", "twelve_data")
+  field :exchange_rate_provider, type: :string, default: ENV.fetch("EXCHANGE_RATE_PROVIDER", "frankfurter")
+  field :securities_provider, type: :string, default: ENV.fetch("SECURITIES_PROVIDER", "yahoo_finance")
 
   # Multi-provider: comma-separated list of enabled securities providers
   field :securities_providers, type: :string, default: ENV.fetch("SECURITIES_PROVIDERS", "")
-
-  # New provider API keys (encrypted at rest — see EncryptedSettingFields below)
-  field :tiingo_api_key, type: :string, default: ENV["TIINGO_API_KEY"]
-  field :eodhd_api_key, type: :string, default: ENV["EODHD_API_KEY"]
-  field :alpha_vantage_api_key, type: :string, default: ENV["ALPHA_VANTAGE_API_KEY"]
-  field :tinkoff_invest_api_key, type: :string, default: ENV["TINKOFF_INVEST_API_KEY"]
-  # Mansa API (mansaapi.com) — African exchanges, including NGX (Nigeria),
-  # which none of the providers above cover. See Provider::Mansa.
-  field :mansa_api_key, type: :string, default: ENV["MANSA_API_KEY"]
-
-  # Property valuation (AVM) provider API keys
-  field :rentcast_api_key, type: :string, default: ENV["RENTCAST_API_KEY"]
-  field :realie_api_key, type: :string, default: ENV["REALIE_API_KEY"]
-  field :chimnie_api_key, type: :string, default: ENV["CHIMNIE_API_KEY"]
 
   # Mail server for password resets and invitations (Setting::MailServer)
   include MailServer
@@ -113,15 +98,6 @@ class Setting < RailsSettings::Base
   # encryption was enabled) the raw value is returned as-is.
   module EncryptedSettingFields
     ENCRYPTED_FIELDS = %i[
-      twelve_data_api_key
-      tiingo_api_key
-      eodhd_api_key
-      alpha_vantage_api_key
-      tinkoff_invest_api_key
-      mansa_api_key
-      rentcast_api_key
-      realie_api_key
-      chimnie_api_key
       openai_access_token
       anthropic_access_token
       jev_api_key
@@ -181,14 +157,7 @@ class Setting < RailsSettings::Base
     end
   end
 
-  # Sync settings - check both provider env vars for default
-  # Only defaults to true if neither provider explicitly disables pending
-  SYNCS_INCLUDE_PENDING_DEFAULT = begin
-    simplefin = ENV.fetch("SIMPLEFIN_INCLUDE_PENDING", "1") == "1"
-    plaid = ENV.fetch("PLAID_INCLUDE_PENDING", "1") == "1"
-    simplefin && plaid
-  end
-  field :syncs_include_pending, type: :boolean, default: SYNCS_INCLUDE_PENDING_DEFAULT
+  # Sync settings
   field :auto_sync_enabled, type: :boolean, default: ENV.fetch("AUTO_SYNC_ENABLED", "1") == "1"
   field :auto_sync_time, type: :string, default: ENV.fetch("AUTO_SYNC_TIME", "02:22")
   field :auto_sync_timezone, type: :string, default: ENV.fetch("AUTO_SYNC_TIMEZONE", "UTC")
