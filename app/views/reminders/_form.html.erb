@@ -1,0 +1,56 @@
+<%# locals: (reminder:) %>
+
+<%= styled_form_with model: reminder, class: "space-y-4" do |f| %>
+  <section class="space-y-4">
+    <% if reminder.errors.any? %>
+      <%= render "shared/form_errors", model: reminder %>
+    <% end %>
+
+    <%= f.text_field :title,
+          label: t(".title_label"),
+          placeholder: t(".title_placeholder"),
+          autofocus: true,
+          required: true %>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <%= f.select :kind,
+            Reminder::KINDS.map { |kind| [ t("reminders.kinds.#{kind}"), kind ] },
+            { label: t(".kind_label") } %>
+      <%= f.text_field :counterparty,
+            label: t(".counterparty_label"),
+            placeholder: t(".counterparty_placeholder") %>
+    </div>
+
+    <%= f.money_field :amount,
+          label: t(".amount_label"),
+          placeholder: t(".amount_placeholder"),
+          input_class: "privacy-sensitive privacy-sensitive-interactive",
+          default_currency: Current.family.primary_currency_code,
+          min: 0 %>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <%= f.date_field :due_on, label: t(".due_on_label"), required: true %>
+      <%= f.select :repeat,
+            Reminder::REPEATS.map { |repeat| [ t("reminders.repeats.#{repeat}"), repeat ] },
+            { label: t(".repeat_label") } %>
+    </div>
+
+    <%= f.number_field :remind_days_before,
+          label: t(".remind_days_before_label"),
+          min: 0,
+          max: 30,
+          step: 1,
+          required: true %>
+
+    <%= f.collection_select :account_id,
+          Current.user.accessible_accounts.visible.alphabetically,
+          :id, :name,
+          { label: t(".account_label"), include_blank: t(".account_blank"), searchable: true } %>
+
+    <%= f.text_area :notes, label: t(".notes_label"), rows: 3 %>
+  </section>
+
+  <section>
+    <%= f.submit reminder.new_record? ? t(".create") : t(".save") %>
+  </section>
+<% end %>

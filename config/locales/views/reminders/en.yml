@@ -1,0 +1,73 @@
+---
+en:
+  reminders:
+    kinds:
+      money_lent: Money lent
+      money_owed_to_me: Owed to me
+      investment: Investment
+      bill: Bill
+      other: Other
+    repeats:
+      none: Does not repeat
+      weekly: Weekly
+      monthly: Monthly
+      yearly: Yearly
+    due:
+      today: Due today
+      in_days:
+        one: Due tomorrow
+        other: Due in %{count} days
+      overdue:
+        one: 1 day overdue
+        other: "%{count} days overdue"
+    index:
+      title: Reminders
+      subtitle: Money you lent, investments that mature and money you're waiting on.
+      new: New reminder
+      empty_title: No reminders yet
+      empty_body: Add one for a loan to collect, a deposit that matures or money someone owes you. You'll get an email when it's due.
+      nothing_soon: Nothing due in the next 30 days.
+      sections:
+        overdue: Overdue
+        soon: Next 30 days
+        later: Later
+        done: Done
+    reminder:
+      mark_done: Mark done
+      edit: Edit
+      reopen: Not done yet
+      delete: Delete
+      delete_title: Delete reminder?
+      delete_body: "\"%{title}\" will be deleted. This can't be undone."
+      done_on: Done %{date}
+    form:
+      title_label: Title
+      title_placeholder: Loan to a friend
+      kind_label: Type
+      counterparty_label: Who or what
+      counterparty_placeholder: Person, bank or scheme
+      amount_label: Amount
+      amount_placeholder: Optional
+      due_on_label: Due date
+      repeat_label: Repeats
+      remind_days_before_label: Email me this many days before
+      account_label: Linked account
+      account_blank: None
+      notes_label: Notes
+      create: Add reminder
+      save: Save
+    new:
+      title: New reminder
+    edit:
+      title: Edit reminder
+    create:
+      created: Reminder added
+    update:
+      updated: Reminder saved
+    destroy:
+      deleted: Reminder deleted
+    done:
+      completed: "\"%{title}\" is done"
+      next_date: "\"%{title}\" moved to %{date}"
+    reopen:
+      reopened: "\"%{title}\" is back on your list"

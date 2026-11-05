@@ -1,0 +1,69 @@
+<%# locals: (reminder:, today:) %>
+
+<% state = reminder.due_state(today) %>
+<% details = [
+     reminder.counterparty.presence,
+     t("reminders.kinds.#{reminder.kind}"),
+     (t("reminders.repeats.#{reminder.repeat}") if reminder.repeating?),
+     reminder.account&.name
+   ].compact %>
+
+<div id="<%= dom_id(reminder) %>" class="flex items-center gap-3 px-5 py-3">
+  <div class="min-w-0 flex-1">
+    <p class="text-sm font-medium text-primary truncate"><%= reminder.title %></p>
+    <p class="text-xs text-secondary truncate"><%= details.join(" · ") %></p>
+    <% if reminder.notes.present? %>
+      <p class="text-xs text-subdued truncate"><%= reminder.notes %></p>
+    <% end %>
+  </div>
+
+  <div class="text-right shrink-0">
+    <% if reminder.amount_money %>
+      <p class="text-sm text-primary privacy-sensitive"><%= format_money(reminder.amount_money) %></p>
+    <% end %>
+    <% if reminder.completed? %>
+      <p class="text-xs text-secondary"><%= t(".done_on", date: format_date(reminder.completed_at)) %></p>
+    <% else %>
+      <p class="text-xs <%= { overdue: "text-destructive", today: "text-warning" }.fetch(state, "text-secondary") %>">
+        <%= reminder.due_label(today) %>
+      </p>
+      <p class="text-xs text-subdued"><%= format_date(reminder.due_on) %></p>
+    <% end %>
+  </div>
+
+  <% unless Current.user.guest? %>
+    <div class="flex items-center gap-1 shrink-0">
+      <% unless reminder.completed? %>
+        <%= render DS::Button.new(
+              text: t(".mark_done"),
+              variant: "outline",
+              size: "sm",
+              href: done_reminder_path(reminder),
+              method: :patch
+            ) %>
+      <% end %>
+
+      <%= render DS::Menu.new do |menu| %>
+        <% if reminder.completed? %>
+          <% menu.with_item(variant: "button", text: t(".reopen"), icon: "rotate-ccw", href: reopen_reminder_path(reminder), method: :patch) %>
+        <% else %>
+          <% menu.with_item(variant: "link", text: t(".edit"), icon: "pencil", href: edit_reminder_path(reminder), frame: :modal) %>
+        <% end %>
+        <% menu.with_item(
+              variant: "button",
+              text: t(".delete"),
+              icon: "trash-2",
+              href: reminder_path(reminder),
+              method: :delete,
+              destructive: true,
+              confirm: CustomConfirm.new(
+                destructive: true,
+                title: t(".delete_title"),
+                body: t(".delete_body", title: reminder.title),
+                btn_text: t(".delete")
+              )
+            ) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

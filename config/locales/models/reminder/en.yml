@@ -1,0 +1,16 @@
+---
+en:
+  activerecord:
+    models:
+      reminder: Reminder
+    attributes:
+      reminder:
+        account: Account
+        amount: Amount
+        counterparty: Who or what
+        due_on: Due date
+        kind: Type
+        notes: Notes
+        remind_days_before: Days of notice
+        repeat: Repeats
+        title: Title

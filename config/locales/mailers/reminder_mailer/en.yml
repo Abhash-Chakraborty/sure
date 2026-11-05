@@ -1,0 +1,14 @@
+---
+en:
+  reminder_mailer:
+    due:
+      subject:
+        one: 1 reminder is due
+        other: "%{count} reminders are due"
+      heading:
+        one: 1 reminder needs your attention
+        other: "%{count} reminders need your attention"
+      reminder: Reminder
+      due: Due
+      amount: Amount
+      cta: Open reminders

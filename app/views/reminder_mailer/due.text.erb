@@ -1,0 +1,7 @@
+<%= t(".heading", count: @reminders.size) %>
+
+<% @reminders.each do |reminder| %>
+- <%= [ reminder.title, reminder.counterparty.presence, reminder.amount_money&.format, "#{reminder.due_label(@today)} (#{I18n.l(reminder.due_on, format: :long)})" ].compact.join(" | ") %>
+<% end %>
+
+<%= t(".cta") %>: <%= @reminders_url %>

@@ -1,0 +1,50 @@
+<% content_for :page_header do %>
+  <header class="flex items-start justify-between gap-4 mb-6">
+    <div class="space-y-1">
+      <h1 class="text-xl lg:text-3xl font-medium text-primary"><%= t(".title") %></h1>
+      <p class="text-sm lg:text-base text-secondary"><%= t(".subtitle") %></p>
+    </div>
+
+    <% unless Current.user.guest? %>
+      <%= render DS::Link.new(
+            text: t(".new"),
+            variant: "primary",
+            icon: "plus",
+            href: new_reminder_path,
+            frame: :modal
+          ) %>
+    <% end %>
+  </header>
+<% end %>
+
+<div class="space-y-8 pb-12 max-w-3xl">
+  <% if @overdue.empty? && @soon.empty? && @later.empty? && @done.empty? %>
+    <%= render DS::Card.new do %>
+      <%= render DS::EmptyState.new(icon: "bell", title: t(".empty_title"), description: t(".empty_body")) do |empty| %>
+        <% unless Current.user.guest? %>
+          <% empty.with_action do %>
+            <%= render DS::Link.new(text: t(".new"), variant: "primary", icon: "plus", href: new_reminder_path, frame: :modal) %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <% [ [ :overdue, @overdue ], [ :soon, @soon ], [ :later, @later ], [ :done, @done ] ].each do |key, reminders| %>
+      <% next if reminders.empty? && key != :soon %>
+
+      <section class="space-y-3" aria-labelledby="reminders-<%= key %>">
+        <h2 id="reminders-<%= key %>" class="text-sm font-medium text-secondary">
+          <%= t(".sections.#{key}") %>
+          <span class="text-subdued">&middot; <%= reminders.size %></span>
+        </h2>
+
+        <%= render DS::Card.new(class: "p-0 divide-y divide-primary") do %>
+          <% if reminders.empty? %>
+            <p class="text-sm text-secondary px-5 py-4"><%= t(".nothing_soon") %></p>
+          <% end %>
+          <%= render partial: "reminders/reminder", collection: reminders, locals: { today: @today } %>
+        <% end %>
+      </section>
+    <% end %>
+  <% end %>
+</div>

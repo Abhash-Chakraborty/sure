@@ -1,0 +1,32 @@
+<h1><%= t(".heading", count: @reminders.size) %></h1>
+
+<table class="email-table">
+  <thead>
+    <tr>
+      <th><%= t(".reminder") %></th>
+      <th><%= t(".due") %></th>
+      <th class="text-right"><%= t(".amount") %></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @reminders.each do |reminder| %>
+      <tr>
+        <td>
+          <%= reminder.title %>
+          <% if reminder.counterparty.present? %>
+            <br><%= reminder.counterparty %>
+          <% end %>
+        </td>
+        <td>
+          <%= reminder.due_label(@today) %>
+          <br><%= I18n.l(reminder.due_on, format: :long) %>
+        </td>
+        <td class="text-right"><%= reminder.amount_money&.format %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<p style="margin-top: 16px;">
+  <%= link_to t(".cta"), @reminders_url, class: "button" %>
+</p>

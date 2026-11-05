@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_05_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -1309,6 +1309,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_090000) do
     t.string "price"
     t.string "qty"
     t.string "resource_type"
+    t.string "rule_group"
     t.integer "source_row_number", null: false
     t.string "tags"
     t.string "ticker"
@@ -2291,6 +2292,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_090000) do
     t.index ["outflow_transaction_id"], name: "index_rejected_transfers_on_outflow_transaction_id"
   end
 
+  create_table "reminders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "account_id"
+    t.decimal "amount", precision: 19, scale: 4
+    t.datetime "completed_at"
+    t.string "counterparty"
+    t.datetime "created_at", null: false
+    t.string "currency", null: false
+    t.date "due_on", null: false
+    t.uuid "family_id", null: false
+    t.string "kind", default: "other", null: false
+    t.date "last_notified_on"
+    t.text "notes"
+    t.integer "remind_days_before", default: 1, null: false
+    t.string "repeat", default: "none", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_reminders_on_account_id"
+    t.index ["family_id", "completed_at", "due_on"], name: "index_reminders_on_family_id_and_completed_at_and_due_on"
+    t.index ["family_id"], name: "index_reminders_on_family_id"
+  end
+
   create_table "rule_actions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "action_type", null: false
     t.datetime "created_at", null: false
@@ -2310,6 +2332,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_090000) do
     t.string "value"
     t.index ["parent_id"], name: "index_rule_conditions_on_parent_id"
     t.index ["rule_id"], name: "index_rule_conditions_on_rule_id"
+  end
+
+  create_table "rule_groups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "family_id", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "name"], name: "index_rule_groups_on_family_id_and_name", unique: true
+    t.index ["family_id"], name: "index_rule_groups_on_family_id"
   end
 
   create_table "rule_runs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -2338,10 +2370,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_090000) do
     t.string "name"
     t.integer "position", default: 0, null: false
     t.string "resource_type", null: false
+    t.uuid "rule_group_id"
     t.boolean "stop_processing", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["family_id", "position"], name: "index_rules_on_family_id_and_position"
     t.index ["family_id"], name: "index_rules_on_family_id"
+    t.index ["rule_group_id"], name: "index_rules_on_rule_group_id"
   end
 
   create_table "securities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -3205,11 +3239,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_090000) do
   add_foreign_key "redbark_items", "families"
   add_foreign_key "rejected_transfers", "transactions", column: "inflow_transaction_id", on_delete: :cascade
   add_foreign_key "rejected_transfers", "transactions", column: "outflow_transaction_id", on_delete: :cascade
+  add_foreign_key "reminders", "accounts", on_delete: :nullify
+  add_foreign_key "reminders", "families"
   add_foreign_key "rule_actions", "rules"
   add_foreign_key "rule_conditions", "rule_conditions", column: "parent_id"
   add_foreign_key "rule_conditions", "rules"
+  add_foreign_key "rule_groups", "families"
   add_foreign_key "rule_runs", "rules"
   add_foreign_key "rules", "families"
+  add_foreign_key "rules", "rule_groups", on_delete: :nullify
   add_foreign_key "security_prices", "securities"
   add_foreign_key "security_splits", "securities", on_delete: :cascade
   add_foreign_key "sessions", "impersonation_sessions", column: "active_impersonator_session_id", on_delete: :nullify

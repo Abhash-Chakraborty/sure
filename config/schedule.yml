@@ -108,3 +108,10 @@ backfill_account_logos:
   active_job: true
   queue: "scheduled"
   description: "Fetches icons for accounts with an institution domain and no logo"
+
+send_reminder_emails:
+  cron: "30 8 * * * Asia/Kolkata" # daily at 8:30 AM India time
+  class: "ReminderNotificationJob"
+  active_job: true
+  queue: "scheduled"
+  description: "Emails each family member the reminders coming due or overdue"
