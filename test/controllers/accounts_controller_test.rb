@@ -51,6 +51,8 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#account-outstanding dt", text: "Balance once all is settled"
     assert_select "##{dom_id(ious(:dinner), :outstanding)} a[href='#{project_path(projects(:lisbon))}'][data-turbo-frame='_top']", text: "Lisbon trip"
     assert_select "##{dom_id(ious(:client_fee), :outstanding)} p", text: "+$1,500.00"
+    # The button sits on its own line on a phone instead of being hidden there.
+    assert_select "##{dom_id(ious(:client_fee), :outstanding)} div[class~='basis-full'] a[href='#{new_iou_payment_path(ious(:client_fee))}']", text: "Record payment"
   end
 
   test "show has no owed section for an account without open IOUs" do

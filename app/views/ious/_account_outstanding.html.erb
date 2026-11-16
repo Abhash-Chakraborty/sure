@@ -27,7 +27,7 @@
 
     <ul class="divide-y divide-primary">
       <% outstanding.ious.each do |iou| %>
-        <li id="<%= dom_id(iou, :outstanding) %>" class="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+        <li id="<%= dom_id(iou, :outstanding) %>" class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 first:pt-0 last:pb-0">
           <div class="min-w-0 flex-1">
             <p class="text-sm font-medium text-primary truncate"><%= iou.description %></p>
             <p class="text-xs text-secondary truncate"><%= iou_outstanding_details(iou) %></p>
@@ -42,7 +42,8 @@
             <% end %>
           </div>
           <% unless Current.user.guest? %>
-            <div class="hidden @lg:block shrink-0">
+            <%# On a phone the button takes its own line under the row. %>
+            <div class="basis-full @lg:basis-auto flex justify-end shrink-0">
               <%= render DS::Link.new(
                     text: t("ious.iou.record_payment"),
                     variant: "outline",
