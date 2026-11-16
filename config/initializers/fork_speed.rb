@@ -6,7 +6,7 @@
 # Lets browsers keep fingerprinted assets for a year. Their file names change
 # whenever their contents do, so a kept copy is never out of date.
 class ForkAssetCaching
-  CACHE_CONTROL = "public, max-age=#{1.year.to_i}, immutable".freeze
+  CACHE_CONTROL = "public, max-age=31536000, immutable".freeze
   COMPRESSED_TYPES = %w[
     text/html text/css text/javascript text/plain text/csv text/vnd.turbo-stream.html
     application/javascript application/json application/manifest+json image/svg+xml
