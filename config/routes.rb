@@ -568,7 +568,9 @@ Rails.application.routes.draw do
   end
   patch "transactions/:transaction_id/project", to: "transaction_projects#update", as: :transaction_project
 
-  resources :merchants, only: :show
+  resources :merchants, only: :show do
+    delete :clear_filter, on: :member
+  end
 
   resources :family_merchants, only: %i[index new create edit update destroy] do
     collection do
