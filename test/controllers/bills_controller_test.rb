@@ -1178,6 +1178,32 @@ class BillsControllerTest < ActionDispatch::IntegrationTest
     assert_match I18n.t("bills.paycheck.safe_after_bills"), response.body
   end
 
+  test "the month summary says what is coming in, not only what was paid" do
+    travel_to Date.new(2026, 11, 10)
+    create_bill(name: "Rent", amount: 2150, expected_day_of_month: 15, next_expected_date: Date.new(2026, 11, 15))
+
+    get bills_url
+    assert_response :success
+    assert_match I18n.t("bills.month_pulse.coming_in"), response.body
+    assert_match I18n.t("bills.month_pulse.no_income"), response.body
+
+    payday = Date.new(2026, 11, 20)
+    @family.recurring_transactions.create!(
+      name: "Paycheck", account: accounts(:depository), amount: -1840, currency: "USD",
+      bill_type: "income", expected_day_of_month: payday.day, anchor_date: payday,
+      last_occurrence_date: payday - 1.month, next_expected_date: payday, status: "active", manual: true
+    )
+
+    get bills_url
+    assert_response :success
+    body = response.body
+    assert_match I18n.t("bills.month_pulse.income_received"), body
+    assert_match I18n.t("bills.month_pulse.income_expected"), body
+    assert_match I18n.t("bills.month_pulse.next_income"), body
+    assert_match "Paycheck", body
+    assert_no_match I18n.t("bills.month_pulse.no_income"), body
+  end
+
   test "a pay period marker totals the bills due after the month's end" do
     travel_to Date.new(2026, 10, 23)
     [ 21, 26 ].each do |day|
