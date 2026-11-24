@@ -81,6 +81,7 @@ class BillsController < ApplicationController
     @paid_this_month = closed.select { |occurrence| occurrence.paid? && occurrence.effective_due_on.between?(today.beginning_of_month, month_end) }
 
     compute_kpis(today, month_end)
+    compute_coming_in(today, month_end)
 
     @month_pay_periods = month_pay_periods(today, month_end)
 
@@ -553,6 +554,40 @@ class BillsController < ApplicationController
       @past_due_total, _ = total_of(@overdue) { |occurrence| occurrence.remaining_amount_money }
       @owed_count = owed_now.size
       @needs_action_count = owed_now.count { |occurrence| !occurrence.recurring_transaction.autopay? }
+    end
+
+    # The other side of the month: what has come in, what is still due to come
+    # in, and the next payday. Declared income only (bill_type income), as the
+    # paycheck view counts it. Money people owe you (IOUs) is incoming too, so
+    # its open total is shown beside it.
+    def compute_coming_in(today, month_end)
+      income_ids = Current.family.recurring_transactions
+                          .accessible_by(Current.user)
+                          .where(bill_type: :income)
+                          .where.not(status: %i[suggested ended])
+                          .pluck(:id)
+      @has_income = income_ids.any?
+
+      month = Current.family.recurring_occurrences
+                     .where(recurring_transaction_id: income_ids)
+                     .where(due_on: today.beginning_of_month..month_end)
+                     .includes(:recurring_transaction)
+                     .to_a
+      preload_allocation_sums(month)
+      @income_received, _ = total_of(month) { |occurrence| occurrence.confirmed_allocated_money }
+      @income_expected, _ = total_of(month.select(&:scheduled?)) { |occurrence| occurrence.remaining_amount_money }
+
+      @next_income = Current.family.recurring_occurrences
+                            .open_status
+                            .where(recurring_transaction_id: income_ids)
+                            .where("due_on >= ?", today)
+                            .includes(:recurring_transaction)
+                            .order(:due_on)
+                            .first
+
+      owed = Current.family.ious.owed_to_me.outstanding.includes(:payments).to_a
+      @owed_to_you, _ = Iou.remaining_total(owed, currency: Current.family.currency)
+      @owed_to_you_count = owed.size
     end
 
     # A trial converting tomorrow and a month-old one-dollar price rise are not

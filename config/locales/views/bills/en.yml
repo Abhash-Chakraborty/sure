@@ -79,6 +79,15 @@ en:
       pulse_bar_aria: "%{percent}% of this month's bills paid"
       next_up: Next up
       view_calendar: View calendar
+      coming_in: Coming in
+      view_income: Income
+      income_received: received this month
+      income_expected: still to come this month
+      next_income: "Next:"
+      no_income: No income set up yet. Add your salary or other income under Income to see what is coming in.
+      owed_to_you:
+        one: owed to you by 1 IOU
+        other: "owed to you across %{count} IOUs"
       # The strip has a column to itself, so the date stands alone rather than
       # reading as a sentence the way the row sublines do.
       date_today: Today

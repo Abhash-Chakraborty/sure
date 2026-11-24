@@ -67,6 +67,50 @@
     </div>
   <% end %>
 
+  <%# Coming in: the month has money arriving as well as leaving. Received and
+      still expected come from declared income, owed to you from the IOUs. %>
+  <div class="pt-3 border-t border-subdued space-y-2">
+    <div class="flex items-center justify-between gap-3">
+      <p class="text-xs font-medium uppercase text-secondary"><%= t(".coming_in") %></p>
+      <%= render DS::Link.new(
+            text: t(".view_income"),
+            variant: :default,
+            href: bills_path(view: "paycheck"),
+            class: "text-xs shrink-0"
+          ) %>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+      <% if @has_income %>
+        <p>
+          <span class="font-medium text-primary privacy-sensitive"><%= format_money(@income_received || Money.new(0, Current.family.currency)) %></span>
+          <span class="text-secondary"><%= t(".income_received") %></span>
+        </p>
+        <p>
+          <span class="font-medium text-success privacy-sensitive"><%= format_money(@income_expected || Money.new(0, Current.family.currency)) %></span>
+          <span class="text-secondary"><%= t(".income_expected") %></span>
+        </p>
+        <% if @next_income %>
+          <p>
+            <span class="text-secondary"><%= t(".next_income") %></span>
+            <span class="text-primary"><%= @next_income.recurring_transaction.display_name %></span>
+            <span class="font-medium text-primary privacy-sensitive"><%= format_money(@next_income.resolved_expected_amount_money) %></span>
+            <span class="text-secondary"><%= bills_next_up_date(@next_income) %></span>
+          </p>
+        <% end %>
+      <% else %>
+        <p class="text-secondary"><%= t(".no_income") %></p>
+      <% end %>
+      <% if @owed_to_you&.amount&.positive? %>
+        <p>
+          <%= link_to ious_path, class: "hover:underline" do %>
+            <span class="font-medium text-primary privacy-sensitive"><%= format_money(@owed_to_you) %></span>
+            <span class="text-secondary"><%= t(".owed_to_you", count: @owed_to_you_count) %></span>
+          <% end %>
+        </p>
+      <% end %>
+    </div>
+  </div>
+
   <% if @unconvertible_count.positive? %>
     <p class="text-xs text-warning"><%= t(".unconvertible", count: @unconvertible_count) %></p>
   <% end %>
